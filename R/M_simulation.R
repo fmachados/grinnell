@@ -231,8 +231,9 @@ M_simulation <- function(data, current_variables, project = FALSE,
     pos_scenarios <- int_vals[[2]]
 
     ## interpolations and sutiability layer projections
-    suit_name <- interpolation(suit_mod, types_clim, pos_scenarios, variables,
-                               lgm, sp_name, lp_name, sl, opca_fol, suit_fol)
+    suit_name <- interpolation(suit_mod, suitability_threshold, types_clim,
+                               pos_scenarios, variables, lgm, sp_name, lp_name,
+                               sl, opca_fol, suit_fol)
   }
 
   # --------
@@ -315,7 +316,7 @@ M_simulation <- function(data, current_variables, project = FALSE,
   }
 
   ## plot and save figure of M in geographic space
-  save_Mplot(suit_mod, variables, suit_layer, m_poly, size_proportion = 0.55,
+  save_Mplot(suit_mod, suit_layer, m_poly, size_proportion = 0.55,
              output_directory, plot)
 
   cat(paste("\nM simulation finished.\n",

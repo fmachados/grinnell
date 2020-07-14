@@ -27,9 +27,10 @@ interpolation_values <- function(transition_to_lgm, stable_lgm, lgm_to_current,
 #'
 #' @export
 
-interpolation <- function(ellipsoid_model, types_clim, pos_scenarios, current,
-                          lgm, current_suitability, lgm_suitability,
-                          slash_type, pca_directory, suitability_directory) {
+interpolation <- function(ellipsoid_model, suitability_threshold, types_clim,
+                          pos_scenarios, current, lgm, current_suitability,
+                          lgm_suitability, slash_type, pca_directory,
+                          suitability_directory) {
   suit_name <- vector()
   for (i in 1:length(pos_scenarios)) {
     spot_val <- types_clim[pos_scenarios[i]]
@@ -92,8 +93,8 @@ interpolation <- function(ellipsoid_model, types_clim, pos_scenarios, current,
 #' @export
 
 M_preparation <- function(directory, pattern = "A_S\\d.*c$",
-                          crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0") {
-  # reading the las A_S
+                          crs = "+proj=longlat +datum=WGS84 +no_defs") {
+  # reading the last A_S
   mss <- list.files(directory, pattern = pattern)
   pl <- gregexpr("S\\d*", mss)
   pla <- regmatches(mss, pl)
@@ -107,8 +108,7 @@ M_preparation <- function(directory, pattern = "A_S\\d.*c$",
   sp::proj4string(shpm) <- sp::CRS(crs)
 
   # writing shapefile and raster of M
-  shp_name <- paste(directory, "M", sep = "/")
-  rgdal::writeOGR(shpm, ".", shp_name, driver = "ESRI Shapefile")
+  rgdal::writeOGR(shpm, directory, "M", driver = "ESRI Shapefile")
 
   m_name <- paste(directory, "M.asc", sep = "/")
   raster::writeRaster(m, filename = m_name, format = "ascii")
@@ -167,19 +167,24 @@ save_nicheplot <- function(ellipsoid_model, suitability_threshold, variables,
 #'
 #' @export
 
-save_Mplot <- function(ellipsoid_model, variables, suitability_layer, M_polygon,
+save_Mplot <- function(ellipsoid_model, suitability_layer, M_polygon,
                        size_proportion = 0.55, output_directory, plot) {
+  xlims <- raster::extent(suit)[1:2]
+  ylims <- raster::extent(suit)[3:4]
+
   if (plot == TRUE) {
     if (.Platform$OS.type == "unix") {
       quartz()
     } else {
       x11()
     }
+
     par(mar = c(0.5, 0.5, 0.5, 0.5))
-    raster::image(variables[[1]], col = "seashell", axes = FALSE)
-    raster::image(log(suitability_layer), col = rev(terrain.colors(255)), axes = FALSE, add = TRUE)
+    sp::plot(M_polygon, border = "transparent", xlim = xlims, ylim = ylims)
+    raster::image(suitability_layer, col = rev(terrain.colors(255)),
+                  axes = FALSE, add = TRUE)
     sp::plot(M_polygon, lwd = 2, border = "blue4", add = TRUE)
-    points(ellipsoid_model[[1]][, 1:2], pch = 16)
+    points(ellipsoid_model[[1]][, 1:2], pch = 16, cex = 0.7)
     box()
 
     Sys.sleep(2)
@@ -187,12 +192,11 @@ save_Mplot <- function(ellipsoid_model, variables, suitability_layer, M_polygon,
 
   png(paste0(output_directory, "/M_in_geography.png"), width = 80, height = 80,
       units = "mm", res = 600)
-  par(mar = c(0.5, 0.5, 0.5, 0.5), cex = size_proportion)
-  raster::image(variables[[1]], col = "seashell", axes = FALSE)
-  raster::image(log(suitability_layer), col = rev(terrain.colors(255)),
+  sp::plot(M_polygon, border = "transparent", xlim = xlims, ylim = ylims)
+  raster::image(suitability_layer, col = rev(terrain.colors(255)),
                 axes = FALSE, add = TRUE)
-  sp::plot(M_polygon, lwd = 2, border = "blue4", add = TRUE)
-  points(ellipsoid_model[[1]][, 1:2], pch = 16, cex = 0.65)
+  sp::plot(M_polygon, lwd = 1.2, border = "blue4", add = TRUE)
+  points(ellipsoid_model[[1]][, 1:2], pch = 16, cex = 0.7)
   box()
   dev.off()
 }
