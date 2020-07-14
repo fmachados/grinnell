@@ -192,10 +192,11 @@ save_Mplot <- function(ellipsoid_model, suitability_layer, M_polygon,
 
   png(paste0(output_directory, "/M_in_geography.png"), width = 80, height = 80,
       units = "mm", res = 600)
+  par(mar = c(0.5, 0.5, 0.5, 0.5), cex = size_proportion)
   sp::plot(M_polygon, border = "transparent", xlim = xlims, ylim = ylims)
   raster::image(suitability_layer, col = rev(terrain.colors(255)),
                 axes = FALSE, add = TRUE)
-  sp::plot(M_polygon, lwd = 1.2, border = "blue4", add = TRUE)
+  sp::plot(M_polygon, lwd = 1, border = "blue4", add = TRUE)
   points(ellipsoid_model[[1]][, 1:2], pch = 16, cex = 0.7)
   box()
   dev.off()
