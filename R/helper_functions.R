@@ -169,8 +169,8 @@ save_nicheplot <- function(ellipsoid_model, suitability_threshold, variables,
 
 save_Mplot <- function(ellipsoid_model, suitability_layer, M_polygon,
                        size_proportion = 0.55, output_directory, plot) {
-  xlims <- raster::extent(suit)[1:2]
-  ylims <- raster::extent(suit)[3:4]
+  xlims <- raster::extent(suitability_layer)[1:2]
+  ylims <- raster::extent(suitability_layer)[3:4]
 
   if (plot == TRUE) {
     if (.Platform$OS.type == "unix") {
