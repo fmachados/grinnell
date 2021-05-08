@@ -1,14 +1,22 @@
 Package: grinnell
 Type: Package
-Title: An R package to simulate dispersal and accessibility based on niche estimations
-Version: 0.1.0
-Authors@r: c(person("Fernando", "Machado-Stredel", email = "f.machado.stredel@gmail.com", role = "aut"),
-    person("Marlon E.", "Cobos", email = "manubio13@gmail.com", role = c("aut","cre")),
-    person("A. Townsend", "Peterson", email = "town@ku.edu", role = "aut"))
+Title: Dispersal simulations based on ecological niches
+Version: 0.0.1
+Authors@r: c(
+    person("Fernando", "Machado-Stredel", email = "f.machado.stredel@gmail.com", 
+           role = c("aut","cre"), comment = c(ORCID = "0000-0002-8378-3172")),
+    person("Marlon E.", "Cobos", email = "manubio13@gmail.com", role = "aut",
+           comment = c(ORCID = "0000-0002-2611-1767")),
+    person("A. Townsend", "Peterson", email = "town@ku.edu", role = "aut"),
+           comment = c(ORCID = "0000-0003-0243-2379"))
 Maintainer: Fernando Machado-Stredel <f.machado.stredel@gmail.com>
-Date: 2019-07-12
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Date: 2021-05-06
+Description: A set of tools to perform simulations based on considerations of 
+    Grinnellian ecological niches and other user defined dispersal parmaters.
+    Dispersal simulations can be performed under constant or changing 
+    environmental conditions (distinct scenraios of suitability). The main
+    results that can be obtained using these simulations include accessible 
+    areas and colonized areas. 
 Imports:
     ellipse (>= 0.4),
     raster (>= 2.6),
@@ -16,7 +24,7 @@ Imports:
     rgeos (>= 0.3),
     sp (>= 1.2)
 Depends:
-    R (>= 3.4.0)
+    R (>= 3.5)
 VignetteBuilder: knitr
 License: GPL-3
 Encoding: UTF-8
