@@ -5,42 +5,44 @@
 \title{Helper function to simulate species dispersal processes}
 \usage{
 dispersal_simulation(data, suit_layers, dispersal_kernel = "normal",
-  kernel_spread = 1, max_dispersers = 4, replicates = 50,
-  dispersal_events = 50, access_threshold = 5,
-  write_replicates = FALSE, output_directory = "M_simulation_results")
+                     kernel_spread = 1, max_dispersers = 4,
+                     replicates = 10, dispersal_events = 25,
+                     access_threshold = 5, output_directory)
 }
 \arguments{
 \item{data}{(character) name of the csv file with all the species occurrences,
-columns must be:
-species, longitude, latitude.}
+columns must be: species, longitude, latitude.}
 
-\item{suit_layers}{(character) vector of suitability layers to be used for
-each simulation step.}
+\item{suit_layers}{(character) vector of names of suitability layers to be
+used as distinct scenarios. If more than one, the layer names must be ordered
+from past to current. Layer names should include parent directory if needed.}
 
-\item{dispersal_kernel}{(character) dispersal kernel (dispersal function) used to
-simulate the movement
-of the species. Options are: "normal", "log_normal". Default = "normal".}
+\item{dispersal_kernel}{(character) dispersal kernel (dispersal function)
+used to simulate the movement of the species. Options are: "normal",
+"log_normal". Default = "normal".}
 
-\item{kernel_spread}{(numeric) Spread of the function ***. Default = 2.}
+\item{kernel_spread}{(numeric) standard deviation for the
+\code{dispersal_kernel}. Default = 1.}
 
-\item{max_dispersers}{(numeric) maximum number of dispersors that depart from
-each colonized pixel. Depending
-on suitability this number will decrease in less suitable areas.}
+\item{max_dispersers}{(numeric) maximum number of dispersers that depart from
+each colonized pixel. Depending on suitability this number will automatically
+decrease in areas with low suitability values. Default = 4.}
 
-\item{replicates}{(numeric) number of times that the simulation will be repeated.}
+\item{replicates}{(numeric) number of times to repeat the simulation
+per scenario. Default = 10.}
 
-\item{dispersal_events}{(numeric) ...}
+\item{dispersal_events}{(numeric) number of dispersal events to happen per
+scenario. Default = 25.}
 
-\item{access_threshold}{(numeric) percentage, . Default = 5.}
+\item{access_threshold}{(numeric) percentage to be considered when excluding
+accessed cells with lower values. Default = 5.}
 
-\item{write_replicates}{(logical) whether or not to write simulation replicates.
-Default = TRUE.}
-
-\item{output_directory}{(character) name of the output directory to be created
-in which subdirectories
-containing all results will be written. Directory name must include the complete path.}
+\item{output_directory}{(character) name of the output directory where
+results should be written. If this directory does not exist, it will be
+created.}
 }
 \description{
-dispersal_simulation generates a python script that performs the
-simulation of the species accessible area (M).
+dispersal_simulation generates a python script to perform a
+multistep simulation of species dispersal to reconstruct areas that have been
+accessed based on environmental suitability and user-defined dispersal parameters.
 }
