@@ -2,31 +2,43 @@
 % Please edit documentation in R/ellipsoid_suitability.R
 \name{predict_esuitability}
 \alias{predict_esuitability}
-\title{Predict suitability based on niche centroid distances}
+\title{Predict suitability based on Mahalanobis distance to niche centroid}
 \usage{
-predict_esuitability(ellipsoid_model, centroid, covariance_matrix,
-  variables, suitability_threshold = 5, tolerance = 1e-60)
+predict_esuitability(ellipsoid_model = NULL, centroid = NULL,
+                     covariance_matrix = NULL, variables,
+                     suitability_threshold = 5, tolerance = 1e-60)
 }
 \arguments{
 \item{ellipsoid_model}{object produced with the function
 \code{ellipsoid_suitability}. If defined, arguments \code{centroid} and
-\code{covariance_matrix} are not necessary.}
+\code{covariance_matrix} are not used. Default = NULL. This argument can be
+overlooked if \code{centroid} and \code{covariance_matrix} are defined.}
 
-\item{centroid}{centroid to wich distance will be measured in \code{variables}.
-Length of centroid must correspond with number of layers in \code{variables}.
-Ignored if \code{ellipsoid_model} is defined.}
+\item{centroid}{centroid from which distances are measured in \code{variables}.
+The length and variables of centroid must correspond with those of layers in
+\code{variables}. Ignored if \code{ellipsoid_model} is defined. Default = NULL.}
 
-\item{covariance_matrix}{covariance matrix to be used in measuring the
-Mahalanobis distances. Ignored if \code{ellipsoid_model} is defined.}
+\item{covariance_matrix}{covariance matrix to be used when measuring the
+Mahalanobis distances. Ignored if \code{ellipsoid_model} is defined.
+Default = NULL.}
 
 \item{variables}{a RasterStack of variables representing the environmental
-conditions in the area on which the models will be created.}
+conditions in the area where the model will be transferred to.}
 
-\item{suitability_threshold}{(numeric) value from 0 to 100 that will be used
-as threshold (E); default = 5.}
+\item{suitability_threshold}{(numeric) value (percentage) to be used as
+threshold; default = 5.}
 
 \item{tolerance}{the tolerance for detecting linear dependencies.
 Default = 1e-60.}
+}
+\value{
+A list containing:
+\itemize{
+\item niche centroid
+\item covariance matrix
+\item proportion of suitable areas in environmental and geographic space
+\item suitability RasterLayer
+}
 }
 \description{
 predict_esuitability predicts a RasterLayer of environmental
