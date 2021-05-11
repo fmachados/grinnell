@@ -2,59 +2,66 @@
 % Please edit documentation in R/pca_raster.R
 \name{pca_raster}
 \alias{pca_raster}
-\title{Principal componens for raster layers and projections}
+\title{Principal component analysis for raster layers}
 \usage{
-pca_raster(variables, in_format = "ascii", out_format = "ascii",
-  scale = TRUE, project = FALSE, projection_variables,
-  return_back = FALSE, n_pcs, output_directory = "PCA_results")
+pca_raster(variables, in_format = NULL, scale = TRUE, center = TRUE,
+           n_pcs = NULL, project = FALSE, projection_variables,
+           return_projection = FALSE, write_to_directory = FALSE,
+           out_format = "GTiff", output_directory)
 }
 \arguments{
-\item{variables}{(character) name of the folder where environmental variables
+\item{variables}{RasterStack or character. If RasterStack, stack of layers to
+be used; if character, name of the folder where environmental variables
 are.}
 
-\item{in_format}{(character) format of variables in \code{variables}. Options
-are "ascii", "GTiff", and "EHdr" = bil. Default = "ascii".}
+\item{in_format}{(character) if class of \code{variables} = "character",
+format of variables in such a folder. Options are "ascii", "GTiff", and
+"EHdr" = bil. Default = NULL.}
 
-\item{out_format}{(character) format of variables to be written in distinct
-sets inside \code{output_directory}. Options are "ascii", "GTiff", and
-"EHdr" = bil. Default = "ascii".}
-
-\item{scale}{(logical) wheter or not to scale variables while performing
+\item{scale}{(logical) whether or not to scale variables while performing
 principal component analyses.}
 
+\item{center}{(logical) whether or not to center variables while performing
+principal component analyses.}
+
+\item{n_pcs}{(numeric) number of principal components to be returned as
+raster layers. By default all principal components are returned.}
+
 \item{project}{(logical) whether or not to project the species niche to other
-scenario(s). If TRUE, argument \code{projection_variables} needs to be defined.
+scenario(s). If TRUE, argument \code{projection_variables} must be defined.
 Default = FALSE.}
 
-\item{projection_variables}{(character or RasterStack) if character, name of
-the folder where subfolders with environmental variables of scenarios for
-projections are (useful if multiple projections are needed). If RasterStack,
-object containing stacked variables of only one projection scenario.
-Variables must correspond with variables in \code{variables} (i.e., their name
-must correspond but they should represent conditions in other scenario).}
+\item{projection_variables}{character or RasterStack. If character, name of
+the folder where one or more sub-directories containing variables of distinct
+environmental scenarios are (useful if multiple projections are needed).
+If RasterStack, stack of variables representing one scenario for projection.
+Variable names must correspond with those of \code{variables} (i.e., their
+names must match).}
 
-\item{return_back}{(logical) whether or not return raster layers of principal
-components to the R environment in a list with other results.}
+\item{return_projection}{(logical) whether to return raster PCs for
+projection scenario(s) as part of the resulting list. Default = FALSE.}
 
-\item{n_pcs}{(numeric) number of principal components to be returned as rasters.
-By default all principal components are returned as RasterLayers.}
+\item{write_to_directory}{(logical) whether to write results in
+\code{output_directory}. Default = FALSE.}
+
+\item{out_format}{(character) format of layers to be written in
+\code{output_directory}. Options are "ascii", "GTiff", and "EHdr" = bil.
+Default = "GTiff".}
 
 \item{output_directory}{(character) name of the folder to be created to save
-the results of the analyses. Default = "PCA_results".}
+results.}
 }
 \value{
-A list containing PCA summary and PCA loadings as matrices;
-if \code{return_back} = TRUE, one or multiple (if projected)
-RasterStacks of principal components are returned additionally.
-
-All results are written in \code{output_directory}.
+A list containing:
+\itemize{
+\item PCA results
+\item RasterStack of principal components for \code{variables}
+\item if return_projection = TRUE, list of RasterStack objects with principal
+components for other scenarios. NULL if \code{project} = FALSE.
+}
 }
 \description{
 pca_raster performs a principal component analysis with a set of
-variables and produces raster layers of them. If needed the pricipal
-components are projected to other scenarios.
-}
-\details{
-If \code{scale} = TRUE, variables are centered to cero and scaled using
-\code{\link[base]{scale}}.
+variables and returns results including PCs as raster layers. If needed,
+principal components can be projected to other scenarios.
 }
