@@ -138,7 +138,8 @@ write_stats <- function(rep_stat_list, names, format, directory) {
 
 
 # transforms raster M in spatial polygon and saves it
-M_preparation <- function(directory, A_bin = NULL, A_name = NULL) {
+M_preparation <- function(directory, A_bin = NULL, A_name = NULL,
+                          raster_format = "GTiff") {
   if (is.null(A_bin) & !is.null(A_name)) {
     A_bin <- raster::raster(paste0(directory, "/", A_name))
   }
@@ -149,8 +150,8 @@ M_preparation <- function(directory, A_bin = NULL, A_name = NULL) {
   sp::proj4string(shpm) <- A_bin@proj4string
 
   rgdal::writeOGR(shpm, directory, "accessible_area_M", driver = "ESRI Shapefile")
-  m_name <- paste0(directory, "/accessible_area_M.tif")
-  raster::writeRaster(A_bin, filename = m_name, format = "GTiff")
+  m_name <- paste0(directory, "/accessible_area_M", rformat_type(raster_format))
+  raster::writeRaster(A_bin, filename = m_name, format = raster_format)
 
   return(list(A_bin, shpm))
 }
