@@ -2,7 +2,7 @@
 % Please edit documentation in R/M_simulation1.R
 \name{M_simulation1}
 \alias{M_simulation1}
-\title{Simulation of species accessible areas (M)}
+\title{Simulation of species accessible areas (M) R version}
 \usage{
 M_simulation1(data, current_variables, starting_porportion = 0.5,
               barriers = NULL, scale = TRUE, center = TRUE,
@@ -38,7 +38,7 @@ principal component analyses.}
 \item{center}{(logical) whether or not to center variables while performing
 principal component analyses.}
 
-\item{project}{(logical) whether or not to perform environmental suitability
+\item{project}{(logical) whether or not to project environmental suitability
 to past scenarios. The projection is done to the scenario defined by
 \code{projection_variables} and to any other scenario resulting from
 interpolations between current and past conditions. If TRUE,
@@ -48,7 +48,7 @@ arguments \code{projection_variables}, \code{simulation_period},
 Default = FALSE.}
 
 \item{projection_variables}{RasterStack of environmental variables
-representing the "Last Glacial Maximum" scenario. Variable names, projection
+representing the "Last Glacial Maximum" scenario. Variable names, projection,
 and extent of these layers must be the same than those in
 \code{current_variables}.}
 
@@ -131,6 +131,8 @@ mentioned above, plus:
 \itemize{
 \item a folder containing results from the PCA performed
 \item a folder containing results from the preparation of suitability layer(s)
+\item other raster layers representing statistics of accessibility:
+mean and variance
 \item a plot representing the accessible areas and the occurrences
 \item a simple report from the simulation process
 }
@@ -151,7 +153,7 @@ require a background or pseudo-absences.
 
 If \code{barriers} are used, suitability values in the areas where barriers
 exist become zero. This is, populations cannot establish there and dispersal
-will be truncated unless the dispersal kernel defined by arguments
+will be truncated unless dispersal abilities defined by arguments
 \code{dispersal_kernel} and \code{kernel_spread}, allow the species to
 overpass the barriers.
 

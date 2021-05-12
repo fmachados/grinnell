@@ -1,4 +1,4 @@
-#' Simulation of species accessible areas (M)
+#' Simulation of species accessible areas (M) R version
 #'
 #' @description M_simulation1 generates an area that has been potentially
 #' accessible to a species based on simulations of dispersal events determined
@@ -19,7 +19,7 @@
 #' principal component analyses.
 #' @param center (logical) whether or not to center variables while performing
 #' principal component analyses.
-#' @param project (logical) whether or not to perform environmental suitability
+#' @param project (logical) whether or not to project environmental suitability
 #' to past scenarios. The projection is done to the scenario defined by
 #' \code{projection_variables} and to any other scenario resulting from
 #' interpolations between current and past conditions. If TRUE,
@@ -28,7 +28,7 @@
 #' \code{lgm_to_current}, and \code{scenario_span} need to be defined.
 #' Default = FALSE.
 #' @param projection_variables RasterStack of environmental variables
-#' representing the "Last Glacial Maximum" scenario. Variable names, projection
+#' representing the "Last Glacial Maximum" scenario. Variable names, projection,
 #' and extent of these layers must be the same than those in
 #' \code{current_variables}.
 #' @param dispersal_kernel (character) dispersal kernel (dispersal function)
@@ -91,6 +91,8 @@
 #' mentioned above, plus:
 #' - a folder containing results from the PCA performed
 #' - a folder containing results from the preparation of suitability layer(s)
+#' - other raster layers representing statistics of accessibility:
+#' mean and variance
 #' - a plot representing the accessible areas and the occurrences
 #' - a simple report from the simulation process
 #'
@@ -124,7 +126,7 @@
 #'
 #' If \code{barriers} are used, suitability values in the areas where barriers
 #' exist become zero. This is, populations cannot establish there and dispersal
-#' will be truncated unless the dispersal kernel defined by arguments
+#' will be truncated unless dispersal abilities defined by arguments
 #' \code{dispersal_kernel} and \code{kernel_spread}, allow the species to
 #' overpass the barriers.
 #'
@@ -152,7 +154,6 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
 
   # --------
   # testing for initial requirements
-  ## other arguments
   if (missing(data)) {
     stop("Argument 'data' must be defined")
   }
@@ -171,8 +172,11 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
     if (missing(projection_variables)) {
       stop("If 'project' = TRUE, argument 'projection_variables' must be defined")
     }
-    if (current_variables@extent != projection_variables@extent) {
+    if (!all(current_variables@extent == projection_variables@extent)) {
       stop("'projection_variables' and 'current_variables' must have the same extent")
+    }
+    if (!all(names(current_variables) == names(projection_variables))) {
+      stop("Variable names in 'projection_variables' and 'current_variables' must bee the same")
     }
   }
   if (!is.null(barriers)) {
@@ -183,7 +187,7 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
 
   # --------
   # preparation of data in R
-  message("Preparing data for running simulation...")
+  message("Preparing data to run simulation...")
 
   # output directory and slash type of layers
   dir.create(output_directory)
@@ -249,6 +253,14 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
     suit_layer <- suit_mod[[5]][[1]]
     suit_lgm <- suit_mod[[5]][[2]]
 
+    ## barrier consideration
+    if (!is.null(barriers)) {
+      message("  Suitability layers will be corrected using barriers")
+      barriers <- is.na(barriers)
+      suit_layer <- suit_layer * barriers
+      suit_lgm <- suit_lgm * barriers
+    }
+
     ## write suitability layer current and lgm
     emodfile <- paste0(suit_fol, "/Ellipsoid_metadata")
     write_ellmeta(suit_mod, emodfile)
@@ -267,12 +279,6 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
     int_vals <- interpolation_values(simulation_period, transition_to_lgm,
                                      stable_lgm, lgm_to_current,
                                      stable_current, scenario_span)
-
-    ## barrier consideration
-    if (!is.null(barriers)) {
-      message("  Suitability layers will be corrected using barriers")
-      barriers <- is.na(barriers)
-    }
 
     ## interpolations and suitability layer projections
     suit_name <- interpolation(suit_mod, suitability_threshold, int_vals,
@@ -327,6 +333,6 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
 
   # return
   return(list(Simulation_occurrences = oca, Simulation_scenarios = suit_name,
-              Summary = res$Summary, A_raster = res$A, A_polygon = m_poly,
+              Summary = res$Summary, A_raster = m, A_polygon = m_poly,
               A_mean = res$A_mean, A_var = res$A_var))
 }
