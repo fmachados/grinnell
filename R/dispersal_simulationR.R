@@ -45,6 +45,7 @@
 #'
 #' @export
 #' @importFrom raster raster extent res nrow ncol writeRaster
+#' @importFrom stats quantile
 #'
 #' @usage
 #' dispersal_simulationR(data, suit_layers, starting_porportion = 0.5,
@@ -67,11 +68,15 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
 
   # initial tests
   if (missing(data)) {
-    stop("Argument 'data' must be defined. See functions help.")
+    stop("Argument 'data' must be defined")
   }
   if (missing(suit_layers)) {
-    stop("Argument 'suit_layers' must be defined. See functions help.")
+    stop("Argument 'suit_layers' must be defined")
   }
+  if (write_to_directory) {
+    stop("If 'write_to_directory' = TRUE, 'output_directory' must be defined")
+  }
+
 
   # data
   list_suit <- suit_layers
@@ -282,8 +287,10 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
   }
 
   # returning results
-  summ <- list(Scenarios = length(list_suit), Replicates = rep,
-               Dispersal_events = steps, Dispersal_kernel = dispersal_kernel,
+  summ <- list(Scenarios = length(list_suit),
+               Starting_porportion = starting_porportion,
+               Replicates = rep, Dispersal_events = steps,
+               Dispersal_kernel = dispersal_kernel,
                Kernel_spread_SD = spread, Max_dispersers = NdMax)
 
   if(return == "all") {
