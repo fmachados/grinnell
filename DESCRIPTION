@@ -1,7 +1,7 @@
 Package: grinnell
 Type: Package
 Title: Dispersal simulations based on ecological niches
-Version: 0.0.5
+Version: 0.0.6
 Authors@r: c(
     person("Fernando", "Machado-Stredel", email = "f.machado.stredel@gmail.com", 
            role = c("aut","cre"), comment = c(ORCID = "0000-0002-8378-3172")),
@@ -21,6 +21,7 @@ Description: A set of tools to perform simulations based on considerations of
     Theoretical and methodological bases for the approaches and tools 
     implemented can be found in:
     Barve et al. (2011) <doi:10.1016/j.ecolmodel.2011.02.011>,
+    Nunez et al. (2021) <doi:10.21425/F5FBG52142>,
     Peterson et al (2011) <https://www.degruyter.com/princetonup/view/title/506966>,
     Soberon and Peterson (2005) <doi:10.17161/bi.v2i0.4>
 Imports:
