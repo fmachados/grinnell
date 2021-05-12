@@ -44,6 +44,7 @@
 #'
 #' @export
 #' @importFrom raster nlayers
+#' @importFrom stats prcomp predict
 #'
 #' @usage
 #' pca_raster(variables, in_format = NULL, scale = TRUE, center = TRUE,
@@ -93,6 +94,7 @@ pca_raster <- function(variables, in_format = NULL, scale = TRUE, center = TRUE,
 
   # reading variables
   if (clsv == "character") {
+    patt <- paste0(rformat_type(in_format), "$")
     var <- list.files(variables, pattern = patt, full.names = TRUE)
     variables <- raster::stack(var)
   }
