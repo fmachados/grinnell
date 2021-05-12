@@ -56,6 +56,29 @@
 #'                       return = "all", write_to_directory = FALSE,
 #'                       write_all_scenarios = FALSE,
 #'                       raster_format = "GTiff", output_directory)
+#'
+#' @return
+#' If \code{return} = "all', all elements described below will be returned as a
+#' list, if "accessed" or "colonized" are chosen instead, only the elements
+#' corresponding to either "accessed" or "colonized" areas will be returned.
+#'
+#' The list returned contains:
+#' - a list with a summary of scenarios and parameters used
+#' - a binary RasterLayer showing accessed = 1 and non-accessed areas = 0
+#' - a RasterLayer representing mean values of accessibility frequency among
+#' replicates
+#' - a RasterLayer representing variance among values of accessibility frequency
+#' of all replicates
+#' - a binary RasterLayer showing colonized = 1 and non-colonized areas = 0
+#' - a RasterLayer representing mean values of frequency of colonization among
+#' replicates
+#' - a RasterLayer representing variance among values of frequency of
+#' colonization of all replicates
+#'
+#' If \code{write_to_directory} is set to TRUE, the elements described above
+#' and raster layers corresponding to all scenarios
+#' (if \code{write_all_scenarios} = TRUE) will be written in
+#' \code{output_directory}.
 
 dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
                                   dispersal_kernel = "normal",
@@ -96,6 +119,7 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
       dir.create(output_directory)
     }
     outText <- paste0(output_directory, "/report.txt")
+    if (file.exists(outText)) {invisible(file.remove(outText))}
     cat(
       "Simulation parameters\n\n",
       "   Suitability scenarios: ", length(list_suit), "\n",
@@ -282,7 +306,9 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
   # last parts of report and preparing layers if needed
   if (write_to_directory == TRUE) {
     timetot <- end - start
-    cat("\nSimulation time: ", timetot, attr(timetot, "units"),
+    cat("\nSimulation time\n\n",
+        "   Start date|time: ", start, "\n",
+        "   Running time: ", timetot, attr(timetot, "units"),
         file = outText, append = TRUE)
   }
 

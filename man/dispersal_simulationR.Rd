@@ -67,6 +67,31 @@ written. Options are: "GTiff", "EHdr", and "ascii", Default = "GTiff.}
 results should be written. If this directory does not exist, it will be
 created.}
 }
+\value{
+If \code{return} = "all', all elements described below will be returned as a
+list, if "accessed" or "colonized" are chosen instead, only the elements
+corresponding to either "accessed" or "colonized" areas will be returned.
+
+The list returned contains:
+\itemize{
+\item a list with a summary of scenarios and parameters used
+\item a binary RasterLayer showing accessed = 1 and non-accessed areas = 0
+\item a RasterLayer representing mean values of accessibility frequency among
+replicates
+\item a RasterLayer representing variance among values of accessibility frequency
+of all replicates
+\item a binary RasterLayer showing colonized = 1 and non-colonized areas = 0
+\item a RasterLayer representing mean values of frequency of colonization among
+replicates
+\item a RasterLayer representing variance among values of frequency of
+colonization of all replicates
+}
+
+If \code{write_to_directory} is set to TRUE, the elements described above
+and raster layers corresponding to all scenarios
+(if \code{write_all_scenarios} = TRUE) will be written in
+\code{output_directory}.
+}
 \description{
 dispersal_simulationR performs a multistep simulation of species
 dispersal to reconstruct areas that have been accessed and/or colonized
