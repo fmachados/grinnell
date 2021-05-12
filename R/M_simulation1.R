@@ -101,6 +101,8 @@
 #' @importFrom sp proj4string CRS plot
 #' @importFrom rgdal writeOGR
 #' @importFrom ellipse ellipse
+#' @importFrom graphics box legend lines par points
+#' @importFrom grDevices dev.off png terrain.colors
 #'
 #' @usage
 #' M_simulation1(data, current_variables, starting_porportion = 0.5,

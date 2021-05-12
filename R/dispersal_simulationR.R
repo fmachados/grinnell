@@ -45,7 +45,8 @@
 #'
 #' @export
 #' @importFrom raster raster extent res nrow ncol writeRaster
-#' @importFrom stats quantile
+#' @importFrom stats quantile runif rnorm rlnorm
+#' @importFrom utils read.csv write.csv write.table
 #'
 #' @usage
 #' dispersal_simulationR(data, suit_layers, starting_porportion = 0.5,
