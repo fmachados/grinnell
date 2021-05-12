@@ -46,9 +46,27 @@ interpolation <- function(ellipsoid_model, suitability_threshold = 5,
                           current_variables, projection_variables,
                           current_suitability, lgm_suitability,
                           out_format = "GTiff", output_directory) {
-  # initial tests
+  # testing for initial requirements
+  if (missing(ellipsoid_model)) {
+    stop("Argument 'ellipsoid_model' must be defined")
+  }
+  if (missing(interpolation_values)) {
+    stop("Argument 'interpolation_values' must be defined")
+  }
   if (missing(current_variables)) {
     stop("Argument 'current_variables' must be defined")
+  }
+  if (missing(projection_variables)) {
+    stop("Argument 'projection_variables' must be defined")
+  }
+  if (missing(current_suitability)) {
+    stop("Argument 'current_suitability' must be defined")
+  }
+  if (missing(lgm_suitability)) {
+    stop("Argument 'lgm_suitability' must be defined")
+  }
+  if (missing(output_directory)) {
+    stop("Argument 'output_directory' must be defined")
   }
 
   # interpolation values
@@ -84,7 +102,7 @@ interpolation <- function(ellipsoid_model, suitability_threshold = 5,
                         rformat_type(out_format))
       raster::writeRaster(suit_p, ip_name, format = out_format)
 
-      suit_name[i] <- paste0("\"", normalizePath(ip_name), "\"")
+      suit_name[i] <- normalizePath(ip_name)
 
       message("\tInterpolation ", i, " of ", length(pos_scenarios))
     } else {
