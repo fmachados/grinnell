@@ -26,6 +26,9 @@ Default = FALSE.}
 list of RasterStacks (if more than one scenario) with variables representing
 the environmental conditions of scenarios to transfer the model to.
 Variable names must match between initial and projection scenarios.}
+
+\item{tolerance}{the tolerance for detecting linear dependencies.
+Default = 1e-60.}
 }
 \value{
 A list containing:
