@@ -91,7 +91,7 @@
 #'
 #' @export
 #' @importFrom raster writeRaster stack mask crop trim rasterToPolygons image
-#' @importFrom sp proj4string CRS plot
+#' @importFrom sp proj4string CRS plot SpatialPointsDataFrame
 #' @importFrom rgdal writeOGR
 #' @importFrom ellipse ellipse
 #'
