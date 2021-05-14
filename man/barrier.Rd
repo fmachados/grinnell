@@ -14,8 +14,8 @@ A raster layer representing dispersal barriers for a species in a region
 where simulations can be performed in examples.
 }
 \examples{
-barrier <- raster::stack(system.file("extdata/barrier.tif",
-                                     package = "grinnell"))
+barrier <- raster::raster(system.file("extdata/barrier.tif",
+                                      package = "grinnell"))
 
-raster::plot(barrier[[1]])
+raster::plot(barrier)
 }

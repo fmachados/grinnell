@@ -77,9 +77,30 @@ NULL
 #' }
 #'
 #' @examples
-#' barrier <- raster::stack(system.file("extdata/barrier.tif",
-#'                                      package = "grinnell"))
+#' barrier <- raster::raster(system.file("extdata/barrier.tif",
+#'                                       package = "grinnell"))
 #'
-#' raster::plot(barrier[[1]])
+#' raster::plot(barrier)
 #' @name barrier
+NULL
+
+
+
+
+#' Example of layer representing environmental suitability for a species
+#'
+#' A raster layer representing distinct levels of suitability for a species
+#' in a region where simulations can be performed in examples.
+#'
+#' @format A RasterLayer with 108 rows, 84 columns, 9072 cells:
+#' \describe{
+#'   \item{suitability}{values from low = 0 to high = 1}
+#' }
+#'
+#' @examples
+#' suitability <- raster::raster(system.file("extdata/suitability.tif",
+#'                                           package = "grinnell"))
+#'
+#' raster::plot(suitability)
+#' @name suitability
 NULL
