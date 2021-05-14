@@ -97,3 +97,13 @@ dispersal_simulationR performs a multistep simulation of species
 dispersal to reconstruct areas that have been accessed and/or colonized
 based on environmental suitability and user-defined dispersal parameters.
 }
+\examples{
+# data
+data("records", package = "grinnell")
+suitability <- system.file("extdata/suitability.tif", package = "grinnell")
+
+# simulation
+d_s <- dispersal_simulationR(data = records, suit_layers = suitability,
+                             replicates = 3, dispersal_events = 5,
+                             return = "colonized")
+}

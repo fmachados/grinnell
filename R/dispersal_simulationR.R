@@ -80,6 +80,17 @@
 #' and raster layers corresponding to all scenarios
 #' (if \code{write_all_scenarios} = TRUE) will be written in
 #' \code{output_directory}.
+#'
+#' @examples
+#' # data
+#' data("records", package = "grinnell")
+#' suitability <- system.file("extdata/suitability.tif", package = "grinnell")
+#'
+#' # simulation
+#' d_s <- dispersal_simulationR(data = records, suit_layers = suitability,
+#'                              replicates = 3, dispersal_events = 5,
+#'                              return = "colonized")
+
 
 dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
                                   dispersal_kernel = "normal",
