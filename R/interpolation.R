@@ -95,6 +95,8 @@ interpolation <- function(ellipsoid_model, suitability_threshold = 5,
       ## barrier consideration
       if (!is.null(barriers)) {
         suit_p <- suit_p$suitability_layer * barriers
+      } else {
+        suit_p <- suit_p$suitability_layer
       }
 
       ## write suitability layer other scenarios

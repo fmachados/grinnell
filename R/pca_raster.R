@@ -79,7 +79,7 @@ pca_raster <- function(variables, in_format = NULL, scale = TRUE, center = TRUE,
       return_projection <- TRUE
     }
   }
-  if (write_to_directory) {
+  if (write_to_directory & missing(output_directory)) {
     stop("If 'write_to_directory' = TRUE, 'output_directory' must be defined")
   }
 

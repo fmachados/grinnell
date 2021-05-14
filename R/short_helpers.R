@@ -147,7 +147,7 @@ M_preparation <- function(directory, A_bin = NULL, A_name = NULL,
   A_bin[A_bin[] == 0] <- NA
   A_bin <- raster::trim(A_bin)
   shpm <- raster::rasterToPolygons(A_bin, dissolve = TRUE)
-  sp::proj4string(shpm) <- A_bin@proj4string
+  sp::proj4string(shpm) <- A_bin@crs
 
   rgdal::writeOGR(shpm, directory, "accessible_area_M", driver = "ESRI Shapefile")
   m_name <- paste0(directory, "/accessible_area_M", rformat_type(raster_format))
