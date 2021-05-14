@@ -113,9 +113,14 @@ mean and variance
 \description{
 M_simulation generates an area that has been potentially
 accessible to a species based on simulations of dispersal events determined
-by environmental suitability and user-defined parameters.
+by environmental suitability and user-defined parameters. The dispersal
+simulation is performed using Python (see details).
 }
 \details{
+An external dependency for this function is Python >= 3.6 and some of its
+libraries: os, numpy, linecache, csv, copy, math, time. We recommend to
+install Python 3 via Anaconda which will include all the required libraries.
+
 A principal component analysis is performed with \code{current_variables}.
 Then the three first principal components are used to calculate the
 suitability layer used in dispersal simulations. Values of suitability are
@@ -139,4 +144,72 @@ are linear and depend on the distance between the two initial set of
 conditions and other parameter defined in \code{simulation_period},
 \code{stable_current}, \code{stable_lgm}, \code{transition_to_lgm},
 \code{lgm_to_current}, and \code{scenario_span}.
+}
+\examples{
+# preparing data and directories for examples
+## directories
+tempdir <- file.path(tempdir(), "msim")
+dir.create(tempdir)
+
+cvariables <- paste0(tempdir, "/variables")
+dir.create(cvariables)
+
+lgmvariables <- paste0(tempdir, "/LGM")
+dir.create(lgmvariables)
+
+## data
+data("records", package = "grinnell")
+variables <- raster::stack(system.file("extdata/variables.tif",
+                                       package = "grinnell"))
+variables_lgm <- raster::stack(system.file("extdata/variables_lgm.tif",
+                                           package = "grinnell"))
+names(variables_lgm) <- names(variables)
+barrier <- raster::raster(system.file("extdata/barrier.tif",
+                                      package = "grinnell"))
+
+## writing data in temporal directories
+occ <- paste0(tempdir, "/records1.csv")
+write.csv(records, occ, row.names = F)
+
+barr <- paste0(tempdir, "/barrier1.asc")
+raster::writeRaster(barrier, filename = barr, format = "ascii")
+
+vnam <- paste0(cvariables, "/var.asc")
+raster::writeRaster(variables, filename = vnam, format = "ascii",
+                    bylayer = TRUE, suffix = 1:6)
+
+vnam <- paste0(lgmvariables, "/var.asc")
+raster::writeRaster(variables_lgm, filename = vnam, format = "ascii",
+                    bylayer = TRUE, suffix = 1:6)
+
+odir1 <- paste0(tempdir, "/eg_msim1")
+odir2 <- paste0(tempdir, "/eg_msim2")
+odir3 <- paste0(tempdir, "/eg_msim3")
+
+# simulations
+## example in current scenario
+M_simulation(data = occ, current_variables = cvariables,
+             max_dispersers = 2, replicates = 3, dispersal_events = 5,
+             output_directory = odir1)
+
+## example under changing climatic conditions (starting from the past)
+M_simulation(data = occ, current_variables = cvariables,
+             project = TRUE, projection_variables = lgmvariables,
+             kernel_spread = 2, max_dispersers = 2,
+             replicates = 3, dispersal_events = 25,
+             simulation_period = 25, stable_lgm = 7,
+             transition_to_lgm = 3, lgm_to_current = 3,
+             stable_current = 7, scenario_span = 3,
+             output_directory = odir2)
+
+## example under changing conditions, considering dispersal barriers
+M_simulation(data = occ, current_variables = cvariables,
+             barriers = barr, project = TRUE,
+             projection_variables = lgmvariables,
+             kernel_spread = 2, max_dispersers = 2,
+             replicates = 3, dispersal_events = 25,
+             simulation_period = 25, stable_lgm = 7,
+             transition_to_lgm = 3, lgm_to_current = 3,
+             stable_current = 7, scenario_span = 3,
+             output_directory = odir3)
 }
