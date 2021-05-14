@@ -167,3 +167,41 @@ conditions and other parameter defined in \code{simulation_period},
 \code{stable_current}, \code{stable_lgm}, \code{transition_to_lgm},
 \code{lgm_to_current}, and \code{scenario_span}.
 }
+\examples{
+# data
+data("records", package = "grinnell")
+variables <- raster::stack(system.file("extdata/variables.tif",
+                                       package = "grinnell"))
+# example in current scenario
+m <- M_simulation1(data = records, current_variables = variables,
+                   max_dispersers = 2, replicates = 3, dispersal_events = 5,
+                   output_directory = file.path(tempdir(), "eg_Msim1"))
+
+# example under changing climatic conditions (starting from the past)
+variables_lgm <- raster::stack(system.file("extdata/variables_lgm.tif",
+                                           package = "grinnell"))
+names(variables_lgm) <- names(variables)
+
+m_p <- M_simulation1(data = records, current_variables = variables,
+                     project = TRUE, projection_variables = variables_lgm,
+                     kernel_spread = 2, max_dispersers = 2,
+                     replicates = 3, dispersal_events = 25,
+                     simulation_period = 25, stable_lgm = 7,
+                     transition_to_lgm = 3, lgm_to_current = 3,
+                     stable_current = 7, scenario_span = 3,
+                     output_directory = file.path(tempdir(), "eg_Msim1_p"))
+
+# example under changing conditions, considering dispersal barriers
+barrier <- raster::stack(system.file("extdata/barrier.tif",
+                                     package = "grinnell"))
+
+m_pb <- M_simulation1(data = records, current_variables = variables,
+                      barriers = barrier, project = TRUE,
+                      projection_variables = variables_lgm,
+                      kernel_spread = 2, max_dispersers = 2,
+                      replicates = 3, dispersal_events = 25,
+                      simulation_period = 25, stable_lgm = 7,
+                      transition_to_lgm = 3, lgm_to_current = 3,
+                      stable_current = 7, scenario_span = 3,
+                      output_directory = file.path(tempdir(), "eg_Msim1_pb"))
+}
