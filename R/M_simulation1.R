@@ -153,6 +153,7 @@
 #'                    output_directory = file.path(tempdir(), "eg_Msim1"))
 #'
 #' # example under changing climatic conditions (starting from the past)
+#' \donttest{
 #' variables_lgm <- raster::stack(system.file("extdata/variables_lgm.tif",
 #'                                            package = "grinnell"))
 #' names(variables_lgm) <- names(variables)
@@ -179,6 +180,7 @@
 #'                       transition_to_lgm = 3, lgm_to_current = 3,
 #'                       stable_current = 7, scenario_span = 3,
 #'                       output_directory = file.path(tempdir(), "eg_Msim1_pb"))
+#' }
 
 M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
                           barriers = NULL, scale = TRUE, center = TRUE,

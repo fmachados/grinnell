@@ -125,6 +125,7 @@
 #' \code{lgm_to_current}, and \code{scenario_span}.
 #'
 #' @examples
+#' \dontrun{
 #' # preparing data and directories for examples
 #' ## directories
 #' tempdir <- file.path(tempdir(), "msim")
@@ -148,7 +149,7 @@
 #'
 #' ## writing data in temporal directories
 #' occ <- paste0(tempdir, "/records1.csv")
-#' write.csv(records, occ, row.names = F)
+#' write.csv(records, occ, row.names = FALSE)
 #'
 #' barr <- paste0(tempdir, "/barrier1.asc")
 #' raster::writeRaster(barrier, filename = barr, format = "ascii")
@@ -191,6 +192,7 @@
 #'              transition_to_lgm = 3, lgm_to_current = 3,
 #'              stable_current = 7, scenario_span = 3,
 #'              output_directory = odir3)
+#' }
 
 M_simulation <- function(data, current_variables, barriers = NULL, project = FALSE,
                          projection_variables, scale = TRUE, center = TRUE,

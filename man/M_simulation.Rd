@@ -146,6 +146,7 @@ conditions and other parameter defined in \code{simulation_period},
 \code{lgm_to_current}, and \code{scenario_span}.
 }
 \examples{
+\dontrun{
 # preparing data and directories for examples
 ## directories
 tempdir <- file.path(tempdir(), "msim")
@@ -169,7 +170,7 @@ barrier <- raster::raster(system.file("extdata/barrier.tif",
 
 ## writing data in temporal directories
 occ <- paste0(tempdir, "/records1.csv")
-write.csv(records, occ, row.names = F)
+write.csv(records, occ, row.names = FALSE)
 
 barr <- paste0(tempdir, "/barrier1.asc")
 raster::writeRaster(barrier, filename = barr, format = "ascii")
@@ -212,4 +213,5 @@ M_simulation(data = occ, current_variables = cvariables,
              transition_to_lgm = 3, lgm_to_current = 3,
              stable_current = 7, scenario_span = 3,
              output_directory = odir3)
+}
 }
