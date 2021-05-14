@@ -1,7 +1,7 @@
 Package: grinnell
 Type: Package
 Title: Dispersal simulations based on ecological niches
-Version: 0.0.12
+Version: 0.0.14
 Authors@R: c(
     person("Fernando", "Machado-Stredel", email = "f.machado.stredel@gmail.com", 
            role = c("aut","cre"), comment = c(ORCID = "0000-0002-8378-3172")),
@@ -10,15 +10,15 @@ Authors@R: c(
     person("A. Townsend", "Peterson", email = "town@ku.edu", role = "aut",
            comment = c(ORCID = "0000-0003-0243-2379")))
 Maintainer: Fernando Machado-Stredel <f.machado.stredel@gmail.com>
-Date: 2021-05-13
+Date: 2021-05-14
 Description: 
     A set of tools to perform simulations based on considerations of 
-    Grinnellian ecological niches and other user defined dispersal parmaters.
+    Grinnellian ecological niches and other user-defined dispersal parmaters.
     Dispersal simulations can be performed under constant or changing 
     environmental conditions (distinct scenraios of suitability). The main
     results that can be obtained using these simulations include accessible 
-    areas and colonized areas. Considerations of accessible areas are 
-    particularly novel in the tools included here compared to similar packages.
+    areas and colonized areas. Considerations of accessible areas in the tools 
+    included are particularly novel compared to similar packages.
     Theoretical and methodological bases for the approaches and tools 
     implemented can be found in:
     Barve et al. (2011) <doi:10.1016/j.ecolmodel.2011.02.011>,
@@ -29,11 +29,14 @@ URL: https://github.com/fmachados/grinnell
 BugReports: https://github.com/fmachados/grinnell/issues
 Imports:
     ellipse (>= 0.4),
+    graphics,
+    grDevices,
     raster (>= 2.6),
     rgdal (>= 1.4),
     rgeos (>= 0.3),
     sp (>= 1.2),
-    stats
+    stats,
+    utils
 Depends:
     R (>= 3.5)
 Suggests: 
