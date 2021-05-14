@@ -192,8 +192,8 @@ m_p <- M_simulation1(data = records, current_variables = variables,
                      output_directory = file.path(tempdir(), "eg_Msim1_p"))
 
 # example under changing conditions, considering dispersal barriers
-barrier <- raster::stack(system.file("extdata/barrier.tif",
-                                     package = "grinnell"))
+barrier <- raster::raster(system.file("extdata/barrier.tif",
+                                      package = "grinnell"))
 
 m_pb <- M_simulation1(data = records, current_variables = variables,
                       barriers = barrier, project = TRUE,
