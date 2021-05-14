@@ -97,7 +97,7 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
   if (missing(suit_layers)) {
     stop("Argument 'suit_layers' must be defined")
   }
-  if (write_to_directory) {
+  if (write_to_directory & missing(output_directory)) {
     stop("If 'write_to_directory' = TRUE, 'output_directory' must be defined")
   }
 
@@ -308,7 +308,7 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
   if (write_to_directory == TRUE) {
     timetot <- end - start
     cat("\nSimulation time\n\n",
-        "   Start date|time: ", start, "\n",
+        "   Start date|time: ", format(start,usetz = TRUE), "\n",
         "   Running time: ", timetot, attr(timetot, "units"),
         file = outText, append = TRUE)
   }
