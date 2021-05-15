@@ -1,24 +1,51 @@
 Package: grinnell
 Type: Package
-Title: An R package to simulate dispersal and accessibility based on niche estimations
-Version: 0.1.0
-Authors@r: c(person("Fernando", "Machado-Stredel", email = "f.machado.stredel@gmail.com", role = "aut"),
-    person("Marlon E.", "Cobos", email = "manubio13@gmail.com", role = c("aut","cre")),
-    person("A. Townsend", "Peterson", email = "town@ku.edu", role = "aut"))
+Title: Dispersal simulations based on ecological niches
+Version: 0.0.14
+Authors@R: c(
+    person("Fernando", "Machado-Stredel", email = "f.machado.stredel@gmail.com", 
+           role = c("aut","cre"), comment = c(ORCID = "0000-0002-8378-3172")),
+    person("Marlon E.", "Cobos", email = "manubio13@gmail.com", role = "aut",
+           comment = c(ORCID = "0000-0002-2611-1767")),
+    person("A. Townsend", "Peterson", email = "town@ku.edu", role = "aut",
+           comment = c(ORCID = "0000-0003-0243-2379")))
 Maintainer: Fernando Machado-Stredel <f.machado.stredel@gmail.com>
-Date: 2019-07-12
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Date: 2021-05-14
+Description: 
+    A set of tools to perform simulations based on considerations of 
+    Grinnellian ecological niches and other user-defined dispersal parmaters.
+    Dispersal simulations can be performed under constant or changing 
+    environmental conditions (distinct scenraios of suitability). The main
+    results that can be obtained using these simulations include accessible 
+    areas and colonized areas. Considerations of accessible areas in the tools 
+    included are particularly novel compared to similar packages.
+    Theoretical and methodological bases for the approaches and tools 
+    implemented can be found in:
+    Barve et al. (2011) <doi:10.1016/j.ecolmodel.2011.02.011>,
+    Nunez et al. (2021) <doi:10.21425/F5FBG52142>,
+    Peterson et al (2011) <https://www.degruyter.com/princetonup/view/title/506966>,
+    Soberon and Peterson (2005) <doi:10.17161/bi.v2i0.4>.
+URL: https://github.com/fmachados/grinnell
+BugReports: https://github.com/fmachados/grinnell/issues
 Imports:
     ellipse (>= 0.4),
+    graphics,
+    grDevices,
     raster (>= 2.6),
     rgdal (>= 1.4),
     rgeos (>= 0.3),
-    sp (>= 1.2)
+    sp (>= 1.2),
+    stats,
+    utils
 Depends:
-    R (>= 3.4.0)
-VignetteBuilder: knitr
+    R (>= 3.5)
+Suggests: 
+    knitr,
+    rmarkdown
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+VignetteBuilder: knitr
+

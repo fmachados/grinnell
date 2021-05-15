@@ -2,53 +2,55 @@
 % Please edit documentation in R/ellipsoid_suitability.R
 \name{ellipsoid_suitability}
 \alias{ellipsoid_suitability}
-\title{Suitability model based on niche centroid distance}
+\title{Suitability model based on Mahalanobis distance to niche centroid}
 \usage{
 ellipsoid_suitability(data, variables, suitability_threshold = 5,
-  project = FALSE, projection_variables, tolerance = 1e-60)
+                      project = FALSE, projection_variables,
+                      tolerance = 1e-60)
 }
 \arguments{
-\item{data}{a numerical matrix containing geographic coordinates of the species
+\item{data}{a numerical matrix containing geographic coordinates of species
 occurrences to be used; columns must be: longitude and latitude.}
 
 \item{variables}{a RasterStack of variables representing the environmental
-conditions in the area on which the models will be created.}
+conditions in the area of interest.}
 
-\item{suitability_threshold}{(numeric) value from 0 to 100 that will be used as
-threshold (E); default = 5.}
+\item{suitability_threshold}{(numeric) value (percentage) to be used as
+threshold; default = 5.}
 
-\item{project}{(logical) whether or not to project the species niche to other
-scenario(s). If TRUE, argument \code{projection_variables} needs to be defined.
+\item{project}{(logical) whether or not to project the model to other
+scenario(s). If TRUE, argument \code{projection_variables} must be defined.
 Default = FALSE.}
 
-\item{projection_variables}{a RasterStack (if only one scenario) or named list of
-RasterStacks (if more than one scenario) of variables representing the
-environmental conditions of the scenario at which the species niche will be
-transferred. Variables names must correspond between initial and projection
-scenarios.}
+\item{projection_variables}{a RasterStack (if only one scenario) or named
+list of RasterStacks (if more than one scenario) with variables representing
+the environmental conditions of scenarios to transfer the model to.
+Variable names must match between initial and projection scenarios.}
+
+\item{tolerance}{the tolerance for detecting linear dependencies.
+Default = 1e-60.}
 }
 \value{
-A list containing: the occurrences (geographic coordinates and environmental
-values), the corrdinates of the niche centroid, the covariance matrix, the
-proportion of non-suitable areas as measured in the environmental (unique
-environmental conditions) and the geographic space (all conditions), and a
-suitability RasterLayer (if \code{projection_variables} is a RasterStack) or
-a suitability RasterStack (if \code{projection_variables} is a list of
-RasterStacks).
+A list containing:
+\itemize{
+\item occurrences (geographic coordinates and environmental values)
+\item niche centroid
+\item covariance matrix
+\item proportion of suitable areas in environmental and geographic space
+\item suitability RasterLayer if \code{projection_variables} is a RasterStack or
+list of suitability RasterLayer(s) if \code{projection_variables} is a list
+}
 }
 \description{
 ellipsoid_suitability produces a model of environmental
-suitability based on the Mahalanobis distance of each environmental value
-in a given set of variables, to the centriod of the environmental values
-characterized by the occurrences of a given species.
+suitability based on the environmental Mahalanobis distance to the centriod
+of the environmental values characterized by species occurrences.
 }
 \details{
 Distance used for creating the model is Mahalanobis distance. All
-values outside the ellipsoid produced by the distance measured from the
-centroid limit of the occurrences exluding a percentage given by the
-\code{suitability_threshold}, will have cero suitability values.
+values outside the ellipsoid produced using the centroid and covariance
+matrix derived from environmental values in \code{data}, and the value in
+\code{suitability_threshold} will be zero.
 
-Values in maps (from 0 to 1) are interpreted as suitability. For better
-visualization use a color palette based on percetage of data with distinct
-values.
+Values in maps (from 0 to 1) can be interpreted as suitability.
 }
