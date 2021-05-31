@@ -357,6 +357,7 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
                                barriers, variables, lgm, sp_name, lp_name,
                                out_format = "ascii", suit_fol)
     suit_name <- gsub("\"", "", suit_name)
+    suit_name <- gsub("\\\\", "/", suit_name)
     suit_name <- paste0("\"", suit_name, "\"")
   }
 
