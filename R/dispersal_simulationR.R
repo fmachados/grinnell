@@ -58,7 +58,7 @@
 #' dispersal_simulationR(data, suit_layers, starting_porportion = 0.5,
 #'                       dispersal_kernel = "normal",
 #'                       kernel_spread = 1, max_dispersers = 4,
-#'                       replicates = 10, dispersal_events = 25,
+#'                       dispersal_events = 25, replicates = 10,
 #'                       threshold = 5, results_by = "scenario",
 #'                       return = "all", set_seed = 1,
 #'                       write_to_directory = FALSE, write_all = FALSE,
@@ -236,9 +236,6 @@ scenario_wise_simulation <- function(data, suit_layers, starting_porportion = 0.
   layer_dim <- c(raster::nrow(cur_layer), raster::ncol(cur_layer))
   maxsuit <- max(cur_layer[], na.rm = TRUE)
 
-  # parameter of dispersion
-  fat <- ifelse(dispersal_kernel == "LogNormal", TRUE, FALSE)
-
   # other parameters
   Nd_list <- seq(1, max_dispersers)
   incNd <- maxsuit / max_dispersers
@@ -264,7 +261,7 @@ scenario_wise_simulation <- function(data, suit_layers, starting_porportion = 0.
 
   # simulation
   for (i in 1:length(suit_layers)) {
-    message("Scenario ", i, " of ", length(suit_layers), appendLF = FALSE)
+    message("  Scenario ", i, " of ", length(suit_layers), appendLF = FALSE)
 
     s <- raster::raster(suit_layers[i])
     S <- matrix(s[], nrow = layer_dim[1], ncol = layer_dim[2], byrow = TRUE)
@@ -278,8 +275,8 @@ scenario_wise_simulation <- function(data, suit_layers, starting_porportion = 0.
       ## preparing C matrix
       if (i == 1) {
         set_seed <- set_seed + j - 1
-        C <- setPop(data, NW_vertex, layer_dim, cell_size,
-                    starting_porportion, set_seed)
+        C <- set_pop(data, NW_vertex, layer_dim, cell_size,
+                     starting_porportion, set_seed)
         A <- C
       } else {
         A <- matrix(list_acc[[j]], nrow = layer_dim[1], ncol = layer_dim[2])
@@ -294,42 +291,11 @@ scenario_wise_simulation <- function(data, suit_layers, starting_porportion = 0.
         Cpos <- which(C >= 1 & S > 0, arr.ind = TRUE)
         Sv <- S[Cpos]
         Nd <- nd_sval(Sv, S_list, Nd_list)
-        Ndmax <- max(Nd)
 
         #### running steps according to dispersers
-        for (l in 1:Ndmax) {
-          rl <- Nd >= l
-          nv <- sum(rl)
-
-          ##### angle
-          set.seed(set_seed)
-          theta <- runif(n = nv, min = 0, max = 2) * pi
-
-          ##### rad
-          if (fat == FALSE) {
-            rad <- rnorm(n = nv, mean = 0, sd = kernel_spread)
-          } else {
-            rad <- rlnorm(n = nv, meanlog = 0, sdlog = kernel_spread)
-          }
-
-          ##### new coordinates using old ones and rad
-          d_lat <- round(rad * sin(theta))
-          d_lon <- round(rad * cos(theta))
-
-          cpos <- Cpos[rl, ]
-          if (nv == 1) {
-            cpos <- matrix(cpos, 1)
-          }
-          cond <- (cpos[, 1] + d_lat) >= 1 & (cpos[, 1] + d_lat) < layer_dim[1] &
-            (cpos[, 2] + d_lon) >= 1 & (cpos[, 2] + d_lon) < layer_dim[2]
-
-          rc_now <- cbind(
-            row <- ifelse(cond, cpos[, 1] + d_lat, cpos[, 1]),
-            col <- ifelse(cond, cpos[, 2] + d_lon, cpos[, 2])
-          )
-
-          A_now[rc_now] <- A_now[rc_now] + 1
-        }
+        A_now <- dispersal_steps(access_matrix = A_now, colonized_cells = Cpos,
+                                 n_dispersers = Nd, dispersal_kernel,
+                                 kernel_spread, set_seed)
 
         #### updating A and C
         whichA <- which(A_now > 0, arr.ind = TRUE)
@@ -432,7 +398,7 @@ scenario_wise_simulation <- function(data, suit_layers, starting_porportion = 0.
       a_when[a_when[] == ns] <- 0
 
       if (write_to_directory == TRUE) {
-        aname <- paste0(output_directory, "/A_classified", form1)
+        aname <- paste0(output_directory, "/A_scenarios", form1)
         raster::writeRaster(a_when, filename = aname, format = raster_format)
       }
 
@@ -443,7 +409,7 @@ scenario_wise_simulation <- function(data, suit_layers, starting_porportion = 0.
       c_when[c_when[] == ns] <- 0
 
       if (write_to_directory == TRUE) {
-        cname <- paste0(output_directory, "/C_classified", form1)
+        cname <- paste0(output_directory, "/C_scenarios", form1)
         raster::writeRaster(c_when, filename = cname, format = raster_format)
       }
 
@@ -512,7 +478,7 @@ event_wise_simulation <- function(data, suit_layers, starting_porportion = 0.5,
 
   # simulation
   for (i in 1:length(suit_layers)) {
-    message("Scenario ", i, " of ", length(suit_layers), appendLF = FALSE)
+    message("  Scenario ", i, " of ", length(suit_layers), appendLF = FALSE)
 
     s <- raster::raster(suit_layers[i])
     S <- matrix(s[], nrow = layer_dim[1], ncol = layer_dim[2], byrow = TRUE)
@@ -528,8 +494,8 @@ event_wise_simulation <- function(data, suit_layers, starting_porportion = 0.5,
         ### preparing C matrix
         if (i == 1 & j == 1) {
           set_seed <- set_seed + k - 1
-          C <- setPop(data, NW_vertex, layer_dim, cell_size,
-                      starting_porportion, set_seed)
+          C <- set_pop(data, NW_vertex, layer_dim, cell_size,
+                       starting_porportion, set_seed)
           A <- C
         } else {
           A <- matrix(list_acc[[k]], nrow = layer_dim[1], ncol = layer_dim[2])
@@ -543,42 +509,11 @@ event_wise_simulation <- function(data, suit_layers, starting_porportion = 0.5,
         Cpos <- which(C >= 1 & S > 0, arr.ind = TRUE)
         Sv <- S[Cpos]
         Nd <- nd_sval(Sv, S_list, Nd_list)
-        Ndmax <- max(Nd)
 
         #### running steps according to dispersers
-        for (l in 1:Ndmax) {
-          rl <- Nd >= l
-          nv <- sum(rl)
-
-          ##### angle
-          set.seed(set_seed)
-          theta <- runif(n = nv, min = 0, max = 2) * pi
-
-          ##### rad
-          if (fat == FALSE) {
-            rad <- rnorm(n = nv, mean = 0, sd = kernel_spread)
-          } else {
-            rad <- rlnorm(n = nv, meanlog = 0, sdlog = kernel_spread)
-          }
-
-          ##### new coordinates using old ones and rad
-          d_lat <- round(rad * sin(theta))
-          d_lon <- round(rad * cos(theta))
-
-          cpos <- Cpos[rl, ]
-          if (nv == 1) {
-            cpos <- matrix(cpos, 1)
-          }
-          cond <- (cpos[, 1] + d_lat) >= 1 & (cpos[, 1] + d_lat) < layer_dim[1] &
-            (cpos[, 2] + d_lon) >= 1 & (cpos[, 2] + d_lon) < layer_dim[2]
-
-          rc_now <- cbind(
-            row <- ifelse(cond, cpos[, 1] + d_lat, cpos[, 1]),
-            col <- ifelse(cond, cpos[, 2] + d_lon, cpos[, 2])
-          )
-
-          A_now[rc_now] <- A_now[rc_now] + 1
-        }
+        A_now <- dispersal_steps(access_matrix = A_now, colonized_cells = Cpos,
+                                 n_dispersers = Nd, dispersal_kernel,
+                                 kernel_spread, set_seed)
 
         #### updating A and C
         whichA <- which(A_now > 0, arr.ind = TRUE)
@@ -665,7 +600,7 @@ event_wise_simulation <- function(data, suit_layers, starting_porportion = 0.5,
       a_when[a_when[] == ne] <- 0
 
       if (write_to_directory == TRUE) {
-        aname <- paste0(output_directory, "/A_classified", form1)
+        aname <- paste0(output_directory, "/A_events", form1)
         raster::writeRaster(a_when, filename = aname, format = raster_format)
       }
 
@@ -674,7 +609,7 @@ event_wise_simulation <- function(data, suit_layers, starting_porportion = 0.5,
       c_when[c_when[] == ne] <- 0
 
       if (write_to_directory == TRUE) {
-        cname <- paste0(output_directory, "/C_classified", form1)
+        cname <- paste0(output_directory, "/C_events", form1)
         raster::writeRaster(c_when, filename = cname, format = raster_format)
       }
 
