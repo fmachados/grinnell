@@ -9,7 +9,7 @@
 dispersal_simulationR(data, suit_layers, starting_porportion = 0.5,
                       dispersal_kernel = "normal",
                       kernel_spread = 1, max_dispersers = 4,
-                      replicates = 10, dispersal_events = 25,
+                      dispersal_events = 25, replicates = 10,
                       threshold = 5, results_by = "scenario",
                       return = "all", set_seed = 1,
                       write_to_directory = FALSE, write_all = FALSE,

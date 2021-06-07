@@ -106,12 +106,13 @@ interpolation <- function(ellipsoid_model, suitability_threshold = 5,
 
       suit_name[i] <- normalizePath(ip_name)
 
-      message("\tInterpolation ", i, " of ", length(pos_scenarios))
+      message("  Interpolation ", i, " of ", length(pos_scenarios))
     } else {
       suit_name[i] <- ifelse(spot_val == 0, lgm_suitability,
                              current_suitability)
 
-      message("\tInterpolation not needed, using glacial or interglacial layers")
+      message("  Interpolation ", i, " of ", length(pos_scenarios),
+              " not needed, using glacial or interglacial layers")
     }
   }
 

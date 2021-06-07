@@ -262,7 +262,7 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
 
     ## barrier consideration
     if (!is.null(barriers)) {
-      message("  Correcting suitability layer using barriers")
+      message("\nSuitability layers will be corrected using barriers")
       barriers <- is.na(barriers)
       suit_layer <- suit_layer * barriers
     }
@@ -297,7 +297,7 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
 
     ## barrier consideration
     if (!is.null(barriers)) {
-      message("  Suitability layers will be corrected using barriers")
+      message("\nSuitability layers will be corrected using barriers")
       barriers <- is.na(barriers)
       suit_layer <- suit_layer * barriers
       suit_lgm <- suit_lgm * barriers
@@ -318,6 +318,7 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
     lp_name <- normalizePath(l_name)
 
     ## preparing interpolation cycles
+    message("\nPreparing interpolations:")
     int_vals <- interpolation_values(simulation_period, transition_to_lgm,
                                      stable_lgm, lgm_to_current,
                                      stable_current, scenario_span)
@@ -350,12 +351,18 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
   out_dir <- normalizePath(output_directory)
 
   ## script
+  message("")
   res <- dispersal_simulationR(data = oca, suit_layers = suit_name,
-                               starting_porportion, dispersal_kernel,
-                               kernel_spread, max_dispersers, replicates,
-                               dispersal_events, threshold = access_threshold,
-                               set_seed, return = "accessed",
-                               write_to_directory = TRUE, write_all_scenarios,
+                               starting_porportion = starting_porportion,
+                               dispersal_kernel = dispersal_kernel,
+                               kernel_spread = kernel_spread,
+                               max_dispersers = max_dispersers,
+                               dispersal_events = dispersal_events,
+                               replicates = replicates,
+                               threshold = access_threshold,
+                               results_by = "scenario", set_seed = set_seed,
+                               return = "accessed", write_to_directory = TRUE,
+                               write_all = write_all_scenarios,
                                raster_format = out_format,
                                output_directory = out_dir)
 
@@ -371,7 +378,7 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
   save_Mplot(suit_mod, suit_layer, m_poly, size_proportion = 0.55,
              output_directory)
 
-  message("\nM simulation finished\nCheck results in:  ", out_dir)
+  message("\nM simulation finished\nCheck results in:  ", out_dir, "\n")
 
   # return
   return(list(Simulation_occurrences = oca, Simulation_scenarios = suit_name,
