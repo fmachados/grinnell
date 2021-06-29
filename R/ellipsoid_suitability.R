@@ -49,18 +49,27 @@ ellipsoid_suitability <- function(data, variables, suitability_threshold = 5,
                                   project = FALSE, projection_variables,
                                   tolerance = 1e-60) {
   # conditions
+  raster_formats <- c("RasterStack", "RasterBrick")
   if (missing(data)) {
     stop("Argument 'data' must be defined")
+  } else {
+    if(ncol(data) != 2) {
+      stop("Columns in 'data' must be: longitude and latitude; in that order")
+    }
   }
   if (missing(variables)) {
     stop("Argument 'variables' must be defined")
+  } else {
+    if (!class(variables)[1] %in% raster_formats) {
+      stop("Argument 'variables' must be of class RasterStack")
+    }
   }
   if (project == TRUE) {
     if (missing(projection_variables)) {
       stop("If projections are needed, argument 'projection_variables' must be defined")
     }
 
-    if (!class(projection_variables)[1] %in% c("RasterStack", "list")) {
+    if (!class(projection_variables)[1] %in% c(raster_formats, "list")) {
       stop("Argument 'projection_variables' must be of class RasterStack or list")
     }
   }
@@ -185,13 +194,22 @@ predict_esuitability <- function(ellipsoid_model = NULL, centroid = NULL,
                                  suitability_threshold = 5, tolerance = 1e-60) {
 
   # preparing data from ellipsoid_model if given
+  raster_formats <- c("RasterStack", "RasterBrick")
   if (!missing(ellipsoid_model)) {
     occ <- ellipsoid_model[[1]]
     centroid <- ellipsoid_model[[2]]
     covariance_matrix <- ellipsoid_model[[3]]
   }else {
     if (missing(centroid) | missing(covariance_matrix)) {
-      stop("Argument 'ellipsoid_model' is missing, centroid and covariance_matrix must be defined")
+      stop("Argument 'ellipsoid_model' missing, 'centroid' and 'covariance_matrix' must be defined")
+    }
+  }
+
+  if (missing(variables)) {
+    stop("Argument 'variables' must be defined")
+  } else {
+    if (!class(variables)[1] %in% raster_formats) {
+      stop("Argument 'variables' must be of class RasterStack")
     }
   }
 

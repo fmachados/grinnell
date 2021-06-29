@@ -1,8 +1,8 @@
-#' Helper function to simulate species dispersal processes
+#' Simulation of species dispersal processes
 #'
-#' @description dispersal_simulationR performs a multistep simulation of species
-#' dispersal to reconstruct areas that have been accessed and/or colonized
-#' based on environmental suitability and user-defined dispersal parameters.
+#' @description multistep simulation of species dispersal to reconstruct areas
+#' that have been or could be accessed and/or colonized based on environmental
+#' suitability and user-defined dispersal parameters.
 #'
 #' @param data data.frame containing geographic coordinates of occurrences of
 #' the species of interest. Columns must be: species, longitude, latitude, in
@@ -14,6 +14,10 @@
 #' @param starting_porportion (numeric) proportion of \code{data} to be used as
 #' starting points for the simulation. Default = 0.5. All data is used if a
 #' value of 1 is defined.
+#' @param results_by (character) how to run replicates and return results.
+#' Options are: "scenario" or "event". If "scenario" the replicates are produced
+#' for each of the scenarios represented by layers in \code{suit_layers}. If
+#' "event", replicates are produced per dispersal event. Default = "scenario"
 #' @param dispersal_kernel (character) dispersal kernel (dispersal function)
 #' used to simulate the movement of the species. Options are: "normal",
 #' "log_normal". Default = "normal".
@@ -22,21 +26,21 @@
 #' @param max_dispersers (numeric) maximum number of dispersers that depart from
 #' each colonized pixel. Depending on suitability this number will automatically
 #' decrease in areas with low suitability values. Default = 4.
-#' @param replicates (numeric) number of times to repeat the simulation
-#' per scenario. Default = 10.
 #' @param dispersal_events (numeric) number of dispersal events to happen per
 #' scenario. Default = 25.
+#' @param replicates (numeric) number of times to repeat the simulation
+#' per scenario or dispersal event, depending on \code{results_by}. Default = 10.
 #' @param threshold (numeric) percentage to be considered when excluding
 #' accessed or colonized cells with lower values. Default = 5.
-#' @param set_seed (numeric) a seed to be used when sampling \code{data}
-#' according to \code{starting_porportion}. Default = 1.
 #' @param return (character) the results to be returned or written. Options are:
 #' "all", "accessed", "colonized". Default = "all"
+#' @param set_seed (numeric) a seed to be used when sampling \code{data}
+#' according to \code{starting_porportion}. Default = 1.
 #' @param write_to_directory (logical) whether to write results in
 #' \code{output_directory}. Default = FALSE.
-#' @param write_all_scenarios (logical) whether or not to write results
-#' for all scenarios. The default, FALSE, writes only the final results if
-#' \code{write_to_directory} = TRUE.
+#' @param write_all (logical) valid if \code{results_by} = "scenario" and
+#' \code{write_to_directory} = TRUE. Whether or not to write results for all
+#' scenarios. The default, FALSE, writes only the final results.
 #' @param raster_format (character) format to use for raster layers to be
 #' written. Options are: "GTiff", "EHdr", and "ascii", Default = "GTiff.
 #' @param output_directory (character) name of the output directory where
@@ -48,37 +52,59 @@
 #' @importFrom stats quantile runif rnorm rlnorm
 #' @importFrom utils read.csv write.csv write.table
 #'
+#' @rdname dispersal_simulationR
+#'
 #' @usage
 #' dispersal_simulationR(data, suit_layers, starting_porportion = 0.5,
 #'                       dispersal_kernel = "normal",
 #'                       kernel_spread = 1, max_dispersers = 4,
-#'                       replicates = 10, dispersal_events = 25,
-#'                       threshold = 5, set_seed = 1,
-#'                       return = "all", write_to_directory = FALSE,
-#'                       write_all_scenarios = FALSE,
+#'                       dispersal_events = 25, replicates = 10,
+#'                       threshold = 5, results_by = "scenario",
+#'                       return = "all", set_seed = 1,
+#'                       write_to_directory = FALSE, write_all = FALSE,
 #'                       raster_format = "GTiff", output_directory)
 #'
 #' @return
 #' If \code{return} = "all', all elements described below will be returned as a
-#' list, if "accessed" or "colonized" are chosen instead, only the elements
+#' list. If "accessed" or "colonized" are chosen instead, only the elements
 #' corresponding to either "accessed" or "colonized" areas will be returned.
 #'
+#' Notice that only final results are returned as part of the list. If views of
+#' all scenarios are needed use options to write results in a directory,
+#' \code{write_to_directory}, \code{write_all}, \code{raster_format}, and
+#' \code{output_directory}.
+#'
 #' The list returned contains:
-#' - a list with a summary of scenarios and parameters used
-#' - a binary RasterLayer showing accessed = 1 and non-accessed areas = 0
-#' - a RasterLayer representing mean values of accessibility frequency among
-#' replicates
-#' - a RasterLayer representing variance among values of accessibility frequency
-#' of all replicates
-#' - a binary RasterLayer showing colonized = 1 and non-colonized areas = 0
-#' - a RasterLayer representing mean values of frequency of colonization among
-#' replicates
-#' - a RasterLayer representing variance among values of frequency of
-#' colonization of all replicates
+#' - Summary: a list with a summary of scenarios and parameters used
+#' - if \code{results_by} = "scenario":
+#'     - A: a binary RasterLayer showing accessed = 1 and non-accessed areas = 0
+#'     - A_mean: a RasterLayer representing mean values of accessibility
+#'     frequency among replicates
+#'     - A_var: a RasterLayer representing variance among values of accessibility
+#'     frequency of all replicates
+#'     - A_scenarios: a RasterLayer with values representing the number of the
+#'     scenario when areas where accessed
+#'     - C: a binary RasterLayer showing colonized = 1 and non-colonized areas = 0
+#'     - C_mean: a RasterLayer representing mean values of frequency of
+#'     colonization among replicates
+#'     - C_var: a RasterLayer representing variance among values of frequency of
+#'     colonization of all replicates
+#'     - C_scenarios: a RasterLayer with values representing the number of the
+#'     scenario when areas where colonized
+#' - if \code{results_by} = "event":
+#'     - A_events: a RasterLayer with values representing the number of the
+#'     dispersal event when areas where accessed
+#'     - C_events: a RasterLayer with values representing the number of the
+#'     dispersal event when areas where colonized
+#'
+#' The number of dispersal events in results is continuous among scenarios. If
+#' 10 dispersal events are defined and multiple scenarios exist in
+#' \code{suit_layers}, the first dispersal event in the second scenario will be
+#' number 11.
 #'
 #' If \code{write_to_directory} is set to TRUE, the elements described above
-#' and raster layers corresponding to all scenarios
-#' (if \code{write_all_scenarios} = TRUE) will be written in
+#' and raster layers corresponding to all scenarios (if \code{write_all} = TRUE),
+#' or events per scenario (depending on \code{results_by}) will be written in
 #' \code{output_directory}.
 #'
 #' @examples
@@ -95,10 +121,10 @@
 dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
                                   dispersal_kernel = "normal",
                                   kernel_spread = 1, max_dispersers = 4,
-                                  replicates = 10, dispersal_events = 25,
-                                  threshold = 5, set_seed = 1,
-                                  return = "all", write_to_directory = FALSE,
-                                  write_all_scenarios = FALSE,
+                                  dispersal_events = 25, replicates = 10,
+                                  threshold = 5, results_by = "scenario",
+                                  return = "all", set_seed = 1,
+                                  write_to_directory = FALSE, write_all = FALSE,
                                   raster_format = "GTiff", output_directory) {
 
   # initial tests
@@ -112,19 +138,6 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
     stop("If 'write_to_directory' = TRUE, 'output_directory' must be defined")
   }
 
-
-  # data
-  list_suit <- suit_layers
-  spdata <- data
-
-  # parameters
-  proportion <- starting_porportion
-  rep <- replicates
-  steps <- dispersal_events
-  spread <- kernel_spread
-  NdMax <- max_dispersers
-  fat <- ifelse(dispersal_kernel == "LogNormal", TRUE, FALSE)
-
   # initial part of report
   if (write_to_directory == TRUE) {
     if (dir.exists(output_directory) == FALSE) {
@@ -134,106 +147,155 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
     if (file.exists(outText)) {invisible(file.remove(outText))}
     cat(
       "Simulation parameters\n\n",
-      "   Suitability scenarios: ", length(list_suit), "\n",
-      "   Replicates: ", rep, "\n",
-      "   Dispersal events: ", steps, "\n",
+      "   Suitability scenarios: ", length(suit_layers), "\n",
+      "   Dispersal events: ", dispersal_events, "\n",
+      "   Replicates: ", replicates, "\n",
       "   Dispersal kernel: ", dispersal_kernel, "\n",
-      "   Kernel spread (SD): ", spread, "\n",
-      "   Maximum number of dispersers: ", NdMax, "\n",
+      "   Kernel spread (SD): ", kernel_spread, "\n",
+      "   Maximum number of dispersers: ", max_dispersers, "\n",
       file = outText,
       append = TRUE
     )
   }
 
+  # running
+  ## start time
+  start <- Sys.time()
+
+  ## running all analysis
+  message("Running simulation:")
+
+  if (results_by == "scenario") {
+    res <- scenario_wise_simulation(data, suit_layers,
+                                    starting_porportion, dispersal_kernel,
+                                    kernel_spread, max_dispersers,
+                                    dispersal_events, replicates,
+                                    threshold, return, set_seed,
+                                    write_to_directory, write_all,
+                                    raster_format, output_directory)
+  } else {
+    res <- event_wise_simulation(data, suit_layers,
+                                 starting_porportion, dispersal_kernel,
+                                 kernel_spread, max_dispersers,
+                                 dispersal_events, replicates,
+                                 threshold, return, set_seed,
+                                 write_to_directory,
+                                 raster_format, output_directory)
+  }
+
+  # end time
+  end <- Sys.time()
+
+  # last parts of report and preparing layers if needed
+  if (write_to_directory == TRUE) {
+    timetot <- end - start
+    cat("\nSimulation time\n\n",
+        "   Start date|time: ", format(start, usetz = TRUE), "\n",
+        "   Running time: ", timetot, attr(timetot, "units"),
+        file = outText, append = TRUE)
+  }
+
+  # preparing results
+  res <- list(Summary = res$Summary, A = res$A, A_mean = res$A_mean,
+              A_var = res$A_var, A_scenarios = res$A_scenarios,
+              A_events = res$A_events, C = res$C, C_mean = res$C_mean,
+              C_var = res$C_var, C_scenarios = res$C_scenarios,
+              C_events = res$C_events)
+
+  # returning results
+  return(res)
+}
+
+
+
+#' @rdname dispersal_simulationR
+#' @export
+#' @usage
+#' scenario_wise_simulation(data, suit_layers, starting_porportion = 0.5,
+#'                          dispersal_kernel = "normal",
+#'                          kernel_spread = 1, max_dispersers = 4,
+#'                          dispersal_events = 25, replicates = 10,
+#'                          threshold = 5, return = "all",
+#'                          set_seed = 1, write_to_directory = FALSE,
+#'                          write_all = FALSE, raster_format = "GTiff",
+#'                          output_directory)
+
+scenario_wise_simulation <- function(data, suit_layers, starting_porportion = 0.5,
+                                     dispersal_kernel = "normal",
+                                     kernel_spread = 1, max_dispersers = 4,
+                                     dispersal_events = 25, replicates = 10,
+                                     threshold = 5, return = "all",
+                                     set_seed = 1, write_to_directory = FALSE,
+                                     write_all = FALSE, raster_format = "GTiff",
+                                     output_directory) {
+
   # initial values
-  cur_layer <- raster::raster(list_suit[length(list_suit)])
+  cur_layer <- raster::raster(suit_layers[length(suit_layers)])
   NW_vertex <- raster::extent(cur_layer)[c(4, 1)]
   cell_size <- raster::res(cur_layer)[1]
   layer_dim <- c(raster::nrow(cur_layer), raster::ncol(cur_layer))
   maxsuit <- max(cur_layer[], na.rm = TRUE)
 
   # other parameters
-  Nd_list <- seq(1, NdMax)
-  incNd <- maxsuit / NdMax
+  Nd_list <- seq(1, max_dispersers)
+  incNd <- maxsuit / max_dispersers
   S_list <- seq(incNd, maxsuit, incNd)
 
-  # running
-  ## start time
-  start <- Sys.time()
+  # layers to store when things happen
+  ns <- length(suit_layers) + 1
+  cur_layer[] <- ns
 
-  ## running in loop all analysis
-  message("Running simulation:")
-  for (i in 1:length(list_suit)) {
-    s <- raster::raster(list_suit[i])
+  if(return == "all") {
+    a_when <- cur_layer; c_when <- cur_layer
+  } else {
+    if(return == "accessed") {
+      a_when <- cur_layer
+    } else {
+      c_when <- cur_layer
+    }
+  }
+
+  # lists depending on what product is needed
+  list_acc <- list()
+  list_col <- list()
+
+  # simulation
+  for (i in 1:length(suit_layers)) {
+    message("  Scenario ", i, " of ", length(suit_layers), appendLF = FALSE)
+
+    s <- raster::raster(suit_layers[i])
     S <- matrix(s[], nrow = layer_dim[1], ncol = layer_dim[2], byrow = TRUE)
     Sbin <- S
     Sbin[!is.na(Sbin)] <- 1
 
-    ## lists depending on what is needed
-    if(return == "all") {
-      list_rep <- list(); list_col <- list()
-    } else {
-      if(return == "accessed") {
-        list_rep <- list()
-      } else {
-        list_col <- list()
-      }
-    }
-
     ## loop for all replicates
-    message("   Replicates:", appendLF = FALSE)
+    message(" - Replicate:", appendLF = FALSE)
 
-    for (j in 1:rep) {
+    for (j in 1:replicates) {
       ## preparing C matrix
       if (i == 1) {
-        C <- setPop(spdata, NW_vertex, layer_dim, cell_size, proportion,
-                    set_seed)
+        set_seed <- set_seed + j - 1
+        C <- set_pop(data, NW_vertex, layer_dim, cell_size,
+                     starting_porportion, set_seed)
         A <- C
       } else {
+        A <- matrix(list_acc[[j]], nrow = layer_dim[1], ncol = layer_dim[2])
+        C <- matrix(list_col[[j]], nrow = layer_dim[1], ncol = layer_dim[2])
         C[S == 0] <- 0
       }
 
       ### simulation steps
-      for (k in 1:steps) {
-        A_now <- matrix(0, nrow = layer_dim[1], ncol = layer_dim[2], byrow = TRUE)
+      for (k in 1:dispersal_events) {
+        A_now <- matrix(0, nrow = layer_dim[1], ncol = layer_dim[2],
+                        byrow = TRUE)
         Cpos <- which(C >= 1 & S > 0, arr.ind = TRUE)
         Sv <- S[Cpos]
         Nd <- nd_sval(Sv, S_list, Nd_list)
-        Ndmax <- max(Nd)
 
         #### running steps according to dispersers
-        for (l in 1:Ndmax) {
-          rl <- Nd >= l
-          nv <- sum(rl)
-
-          ##### angle
-          theta <- runif(n = nv, min = 0, max = 2) * pi
-
-          ##### rad
-          if (fat == FALSE) {
-            rad <- rnorm(n = nv, mean = 0, sd = spread)
-          } else {
-            rad <- rlnorm(n = nv, meanlog = 0, sdlog = spread)
-          }
-
-          ##### new coordinates using old ones and rad
-          d_lat <- round(rad * sin(theta))
-          d_lon <- round(rad * cos(theta))
-
-          cpos <- Cpos[rl, ]
-          if (nv == 1) {
-            cpos <- matrix(cpos, 1)
-          }
-          cond <- (cpos[, 1] + d_lat) >= 1 & (cpos[, 1] + d_lat) < layer_dim[1] &
-            (cpos[, 2] + d_lon) >= 1 & (cpos[, 2] + d_lon) < layer_dim[2]
-
-          rc_now <- cbind(
-            row <- ifelse(cond, cpos[, 1] + d_lat, cpos[, 1]),
-            col <- ifelse(cond, cpos[, 2] + d_lon, cpos[, 2])
-          )
-
-          A_now[rc_now] <- A_now[rc_now] + 1
-        }
+        A_now <- dispersal_steps(access_matrix = A_now, colonized_cells = Cpos,
+                                 n_dispersers = Nd, dispersal_kernel,
+                                 kernel_spread, set_seed)
 
         #### updating A and C
         whichA <- which(A_now > 0, arr.ind = TRUE)
@@ -244,51 +306,48 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
       }
 
       ### keeping replicates of accessed areas
-      if(return == "all") {
-        list_rep[[j]] <- c(A)
-        list_col[[j]] <- c(C)
-      } else {
-        if(return == "accessed") {
-          list_rep[[j]] <- c(A)
-        } else {
-          list_col[[j]] <- c(C)
-        }
-      }
+      list_acc[[j]] <- c(A)
+      list_col[[j]] <- c(C)
 
       message(" ", j, appendLF = FALSE)
     }
 
-    ## statistics
+    ### statistics an updates
     if(return == "all") {
-      Amvb <- stats_rep(list_rep, layer_dim, Sbin, s, threshold)
+      Amvb <- stats_rep(list_acc, layer_dim, Sbin, s, threshold)
       Cmvb <- stats_rep(list_col, layer_dim, Sbin, s, threshold)
+
+      a_when <- a_when - Amvb[[3]]
+      c_when <- c_when - Cmvb[[3]]
     } else {
       if(return == "accessed") {
-        Amvb <- stats_rep(list_rep, layer_dim, Sbin, s, threshold)
+        Amvb <- stats_rep(list_acc, layer_dim, Sbin, s, threshold)
+        a_when <- a_when - Amvb[[3]]
       } else {
         Cmvb <- stats_rep(list_col, layer_dim, Sbin, s, threshold)
+        c_when <- c_when - Cmvb[[3]]
       }
     }
 
     ## writing results
     if (write_to_directory == TRUE) {
-      if (write_all_scenarios == TRUE) {
+      if (write_all == TRUE) {
         if(return == "all") {
-          namesA <- paste0("A_", c("mean", "var", "bin"), "_", i)
+          namesA <- paste0("A_", c("mean", "var", "bin"), "_scenario_", i)
           write_stats(Amvb, namesA, raster_format, output_directory)
-          namesC <- paste0("C_", c("mean", "var", "bin"), "_", i)
+          namesC <- paste0("C_", c("mean", "var", "bin"), "_scenario_", i)
           write_stats(Cmvb, namesC, raster_format, output_directory)
         } else {
           if(return == "accessed") {
-            namesA <- paste0("A_", c("mean", "var", "bin"), "_", i)
+            namesA <- paste0("A_", c("mean", "var", "bin"), "_scenario_", i)
             write_stats(Amvb, namesA, raster_format, output_directory)
           } else {
-            namesC <- paste0("C_", c("mean", "var", "bin"), "_", i)
+            namesC <- paste0("C_", c("mean", "var", "bin"), "_scenario_", i)
             write_stats(Cmvb, namesC, raster_format, output_directory)
           }
         }
       } else {
-        if(i == length(list_suit)) {
+        if(i == length(suit_layers)) {
           if(return == "all") {
             namesA <- paste0("A_", c("mean", "var", "bin"))
             write_stats(Amvb, namesA, raster_format, output_directory)
@@ -307,41 +366,254 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
       }
     }
 
-    message(""); message("Scenario ", i, " of ", length(list_suit))
-  }
-
-  ## preparing layers if needed
-
-  ## end time
-  end <- Sys.time()
-
-  # last parts of report and preparing layers if needed
-  if (write_to_directory == TRUE) {
-    timetot <- end - start
-    cat("\nSimulation time\n\n",
-        "   Start date|time: ", format(start,usetz = TRUE), "\n",
-        "   Running time: ", timetot, attr(timetot, "units"),
-        file = outText, append = TRUE)
+    message(" #")
   }
 
   # returning results
-  summ <- list(Scenarios = length(list_suit),
+  form1 <- rformat_type(raster_format)
+
+  summ <- list(Scenarios = length(suit_layers),
                Starting_porportion = starting_porportion,
-               Replicates = rep, Dispersal_events = steps,
+               Dispersal_events = dispersal_events, Replicates = replicates,
                Dispersal_kernel = dispersal_kernel,
-               Kernel_spread_SD = spread, Max_dispersers = NdMax)
+               Kernel_spread_SD = kernel_spread, Max_dispersers = max_dispersers)
 
   if(return == "all") {
+    a_when[a_when[] == ns] <- 0
+    c_when[c_when[] == ns] <- 0
+
+    if (write_to_directory == TRUE) {
+      aname <- paste0(output_directory, "/A_classified", form1)
+      cname <- paste0(output_directory, "/C_classified", form1)
+
+      raster::writeRaster(a_when, filename = aname, format = raster_format)
+      raster::writeRaster(c_when, filename = cname, format = raster_format)
+    }
+
     res <- list(Summary = summ, A = Amvb[[3]], A_mean = Amvb[[1]],
-                A_var = Amvb[[2]], C = Cmvb[[3]], C_mean = Cmvb[[1]],
-                C_var = Cmvb[[2]])
+                A_var = Amvb[[2]], A_scenarios = a_when, C = Cmvb[[3]],
+                C_mean = Cmvb[[1]], C_var = Cmvb[[2]], C_scenarios = c_when)
   } else {
     if(return == "accessed") {
+      a_when[a_when[] == ns] <- 0
+
+      if (write_to_directory == TRUE) {
+        aname <- paste0(output_directory, "/A_scenarios", form1)
+        raster::writeRaster(a_when, filename = aname, format = raster_format)
+      }
+
       res <- list(Summary = summ, A = Amvb[[3]], A_mean = Amvb[[1]],
-                  A_var = Amvb[[2]], C = NULL, C_mean = NULL, C_var = NULL)
+                  A_var = Amvb[[2]], A_scenarios = a_when, C = NULL,
+                  C_mean = NULL, C_var = NULL, C_scenarios = NULL)
     } else {
+      c_when[c_when[] == ns] <- 0
+
+      if (write_to_directory == TRUE) {
+        cname <- paste0(output_directory, "/C_scenarios", form1)
+        raster::writeRaster(c_when, filename = cname, format = raster_format)
+      }
+
       res <- list(Summary = summ, A = NULL, A_mean = NULL, A_var = NULL,
-                  C = Cmvb[[3]], C_mean = Cmvb[[1]], C_var = Cmvb[[2]])
+                  A_scenarios = NULL, C = Cmvb[[3]], C_mean = Cmvb[[1]],
+                  C_var = Cmvb[[2]], C_scenarios = c_when)
+    }
+  }
+
+  return(res)
+}
+
+
+
+#' @rdname dispersal_simulationR
+#' @export
+#' @usage
+#' event_wise_simulation(data, suit_layers, starting_porportion = 0.5,
+#'                       dispersal_kernel = "normal",
+#'                       kernel_spread = 1, max_dispersers = 4,
+#'                       dispersal_events = 25, replicates = 10,
+#'                       threshold = 5, return = "all",
+#'                       set_seed = 1, write_to_directory = FALSE,
+#'                       raster_format = "GTiff", output_directory)
+
+event_wise_simulation <- function(data, suit_layers, starting_porportion = 0.5,
+                                  dispersal_kernel = "normal",
+                                  kernel_spread = 1, max_dispersers = 4,
+                                  dispersal_events = 25, replicates = 10,
+                                  threshold = 5, return = "all",
+                                  set_seed = 1, write_to_directory = FALSE,
+                                  raster_format = "GTiff", output_directory) {
+
+  # initial values
+  cur_layer <- raster::raster(suit_layers[length(suit_layers)])
+  NW_vertex <- raster::extent(cur_layer)[c(4, 1)]
+  cell_size <- raster::res(cur_layer)[1]
+  layer_dim <- c(raster::nrow(cur_layer), raster::ncol(cur_layer))
+  maxsuit <- max(cur_layer[], na.rm = TRUE)
+
+  # parameter of dispersion
+  fat <- ifelse(dispersal_kernel == "LogNormal", TRUE, FALSE)
+
+  # other parameters
+  Nd_list <- seq(1, max_dispersers)
+  incNd <- maxsuit / max_dispersers
+  S_list <- seq(incNd, maxsuit, incNd)
+
+  # layers to store when things happen
+  ne <- (dispersal_events * length(suit_layers)) + 1
+  cur_layer[] <- ne
+
+  if(return == "all") {
+    a_when <- cur_layer; c_when <- cur_layer
+  } else {
+    if(return == "accessed") {
+      a_when <- cur_layer
+    } else {
+      c_when <- cur_layer
+    }
+  }
+
+  # lists depending on what product is needed
+  list_acc <- list()
+  list_col <- list()
+
+  # simulation
+  for (i in 1:length(suit_layers)) {
+    message("  Scenario ", i, " of ", length(suit_layers), appendLF = FALSE)
+
+    s <- raster::raster(suit_layers[i])
+    S <- matrix(s[], nrow = layer_dim[1], ncol = layer_dim[2], byrow = TRUE)
+    Sbin <- S
+    Sbin[!is.na(Sbin)] <- 1
+
+    ## loop for all steps
+    message(" - D. event:", appendLF = FALSE)
+
+    for (j in 1:dispersal_events) {
+
+      for (k in 1:replicates) {
+        ### preparing C matrix
+        if (i == 1 & j == 1) {
+          set_seed <- set_seed + k - 1
+          C <- set_pop(data, NW_vertex, layer_dim, cell_size,
+                       starting_porportion, set_seed)
+          A <- C
+        } else {
+          A <- matrix(list_acc[[k]], nrow = layer_dim[1], ncol = layer_dim[2])
+          C <- matrix(list_col[[k]], nrow = layer_dim[1], ncol = layer_dim[2])
+          C[S == 0] <- 0
+        }
+
+        ### updating matrices
+        A_now <- matrix(0, nrow = layer_dim[1], ncol = layer_dim[2],
+                        byrow = TRUE)
+        Cpos <- which(C >= 1 & S > 0, arr.ind = TRUE)
+        Sv <- S[Cpos]
+        Nd <- nd_sval(Sv, S_list, Nd_list)
+
+        #### running steps according to dispersers
+        A_now <- dispersal_steps(access_matrix = A_now, colonized_cells = Cpos,
+                                 n_dispersers = Nd, dispersal_kernel,
+                                 kernel_spread, set_seed)
+
+        #### updating A and C
+        whichA <- which(A_now > 0, arr.ind = TRUE)
+        A[whichA] <- A[whichA] + A_now[whichA]
+
+        whichC <- which(A_now > 0 & S > 0, arr.ind = TRUE)
+        C[whichC] <- C[whichC] + A_now[whichC]
+
+        ### keeping replicates
+        list_acc[[k]] <- c(A)
+        list_col[[k]] <- c(C)
+
+      }
+
+      ### statistics an updates
+      if(return == "all") {
+        Amvb <- stats_rep(list_acc, layer_dim, Sbin, s, threshold)
+        Cmvb <- stats_rep(list_col, layer_dim, Sbin, s, threshold)
+
+        a_when <- a_when - Amvb[[3]]
+        c_when <- c_when - Cmvb[[3]]
+      } else {
+        if(return == "accessed") {
+          Amvb <- stats_rep(list_acc, layer_dim, Sbin, s, threshold)
+          a_when <- a_when - Amvb[[3]]
+        } else {
+          Cmvb <- stats_rep(list_col, layer_dim, Sbin, s, threshold)
+          c_when <- c_when - Cmvb[[3]]
+        }
+      }
+
+      ### writing results
+      if (write_to_directory == TRUE) {
+        if(return == "all") {
+          namesA <- paste0("A_", c("mean", "var", "bin"), "_scenario_", i,
+                           "_event_", j)
+          write_stats(Amvb, namesA, raster_format, output_directory)
+          namesC <- paste0("C_", c("mean", "var", "bin"), "_scenario_", i,
+                           "_event_", j)
+          write_stats(Cmvb, namesC, raster_format, output_directory)
+        } else {
+          if(return == "accessed") {
+            namesA <- paste0("A_", c("mean", "var", "bin"), "_scenario_", i,
+                             "_event_", j)
+            write_stats(Amvb, namesA, raster_format, output_directory)
+          } else {
+            namesC <- paste0("C_", c("mean", "var", "bin"), "_scenario_", i,
+                             "_event_", j)
+            write_stats(Cmvb, namesC, raster_format, output_directory)
+          }
+        }
+      }
+
+      message(" ", j, appendLF = FALSE)
+    }
+
+    message(" #")
+  }
+
+  # returning results
+  form1 <- rformat_type(raster_format)
+
+  summ <- list(Scenarios = length(suit_layers),
+               Starting_porportion = starting_porportion,
+               Dispersal_events = dispersal_events, Replicates = replicates,
+               Dispersal_kernel = dispersal_kernel,
+               Kernel_spread_SD = kernel_spread, Max_dispersers = max_dispersers)
+
+  if(return == "all") {
+    a_when[a_when[] == ne] <- 0
+    c_when[c_when[] == ne] <- 0
+
+    if (write_to_directory == TRUE) {
+      aname <- paste0(output_directory, "/A_classified", form1)
+      cname <- paste0(output_directory, "/C_classified", form1)
+
+      raster::writeRaster(a_when, filename = aname, format = raster_format)
+      raster::writeRaster(c_when, filename = cname, format = raster_format)
+    }
+
+    res <- list(Summary = summ, A_events = a_when, C_events = c_when)
+  } else {
+    if(return == "accessed") {
+      a_when[a_when[] == ne] <- 0
+
+      if (write_to_directory == TRUE) {
+        aname <- paste0(output_directory, "/A_events", form1)
+        raster::writeRaster(a_when, filename = aname, format = raster_format)
+      }
+
+      res <- list(Summary = summ, A_events = a_when, C_events = NULL)
+    } else {
+      c_when[c_when[] == ne] <- 0
+
+      if (write_to_directory == TRUE) {
+        cname <- paste0(output_directory, "/C_events", form1)
+        raster::writeRaster(c_when, filename = cname, format = raster_format)
+      }
+
+      res <- list(Summary = summ, A_events = NULL, C_events = c_when)
     }
   }
 

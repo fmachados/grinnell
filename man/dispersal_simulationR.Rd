@@ -2,15 +2,34 @@
 % Please edit documentation in R/dispersal_simulationR.R
 \name{dispersal_simulationR}
 \alias{dispersal_simulationR}
-\title{Helper function to simulate species dispersal processes}
+\alias{scenario_wise_simulation}
+\alias{event_wise_simulation}
+\title{Simulation of species dispersal processes}
 \usage{
 dispersal_simulationR(data, suit_layers, starting_porportion = 0.5,
                       dispersal_kernel = "normal",
                       kernel_spread = 1, max_dispersers = 4,
-                      replicates = 10, dispersal_events = 25,
-                      threshold = 5, set_seed = 1,
-                      return = "all", write_to_directory = FALSE,
-                      write_all_scenarios = FALSE,
+                      dispersal_events = 25, replicates = 10,
+                      threshold = 5, results_by = "scenario",
+                      return = "all", set_seed = 1,
+                      write_to_directory = FALSE, write_all = FALSE,
+                      raster_format = "GTiff", output_directory)
+
+scenario_wise_simulation(data, suit_layers, starting_porportion = 0.5,
+                         dispersal_kernel = "normal",
+                         kernel_spread = 1, max_dispersers = 4,
+                         dispersal_events = 25, replicates = 10,
+                         threshold = 5, return = "all",
+                         set_seed = 1, write_to_directory = FALSE,
+                         write_all = FALSE, raster_format = "GTiff",
+                         output_directory)
+
+event_wise_simulation(data, suit_layers, starting_porportion = 0.5,
+                      dispersal_kernel = "normal",
+                      kernel_spread = 1, max_dispersers = 4,
+                      dispersal_events = 25, replicates = 10,
+                      threshold = 5, return = "all",
+                      set_seed = 1, write_to_directory = FALSE,
                       raster_format = "GTiff", output_directory)
 }
 \arguments{
@@ -38,27 +57,32 @@ used to simulate the movement of the species. Options are: "normal",
 each colonized pixel. Depending on suitability this number will automatically
 decrease in areas with low suitability values. Default = 4.}
 
-\item{replicates}{(numeric) number of times to repeat the simulation
-per scenario. Default = 10.}
-
 \item{dispersal_events}{(numeric) number of dispersal events to happen per
 scenario. Default = 25.}
+
+\item{replicates}{(numeric) number of times to repeat the simulation
+per scenario or dispersal event, depending on \code{results_by}. Default = 10.}
 
 \item{threshold}{(numeric) percentage to be considered when excluding
 accessed or colonized cells with lower values. Default = 5.}
 
-\item{set_seed}{(numeric) a seed to be used when sampling \code{data}
-according to \code{starting_porportion}. Default = 1.}
+\item{results_by}{(character) how to run replicates and return results.
+Options are: "scenario" or "event". If "scenario" the replicates are produced
+for each of the scenarios represented by layers in \code{suit_layers}. If
+"event", replicates are produced per dispersal event. Default = "scenario"}
 
 \item{return}{(character) the results to be returned or written. Options are:
 "all", "accessed", "colonized". Default = "all"}
 
+\item{set_seed}{(numeric) a seed to be used when sampling \code{data}
+according to \code{starting_porportion}. Default = 1.}
+
 \item{write_to_directory}{(logical) whether to write results in
 \code{output_directory}. Default = FALSE.}
 
-\item{write_all_scenarios}{(logical) whether or not to write results
-for all scenarios. The default, FALSE, writes only the final results if
-\code{write_to_directory} = TRUE.}
+\item{write_all}{(logical) valid if \code{results_by} = "scenario" and
+\code{write_to_directory} = TRUE. Whether or not to write results for all
+scenarios. The default, FALSE, writes only the final results.}
 
 \item{raster_format}{(character) format to use for raster layers to be
 written. Options are: "GTiff", "EHdr", and "ascii", Default = "GTiff.}
@@ -69,33 +93,57 @@ created.}
 }
 \value{
 If \code{return} = "all', all elements described below will be returned as a
-list, if "accessed" or "colonized" are chosen instead, only the elements
+list. If "accessed" or "colonized" are chosen instead, only the elements
 corresponding to either "accessed" or "colonized" areas will be returned.
+
+Notice that only final results are returned as part of the list. If views of
+all scenarios are needed use options to write results in a directory,
+\code{write_to_directory}, \code{write_all}, \code{raster_format}, and
+\code{output_directory}.
 
 The list returned contains:
 \itemize{
-\item a list with a summary of scenarios and parameters used
-\item a binary RasterLayer showing accessed = 1 and non-accessed areas = 0
-\item a RasterLayer representing mean values of accessibility frequency among
-replicates
-\item a RasterLayer representing variance among values of accessibility frequency
-of all replicates
-\item a binary RasterLayer showing colonized = 1 and non-colonized areas = 0
-\item a RasterLayer representing mean values of frequency of colonization among
-replicates
-\item a RasterLayer representing variance among values of frequency of
+\item Summary: a list with a summary of scenarios and parameters used
+\item if \code{results_by} = "scenario":
+\itemize{
+\item A: a binary RasterLayer showing accessed = 1 and non-accessed areas = 0
+\item A_mean: a RasterLayer representing mean values of accessibility
+frequency among replicates
+\item A_var: a RasterLayer representing variance among values of accessibility
+frequency of all replicates
+\item A_scenarios: a RasterLayer with values representing the number of the
+scenario when areas where accessed
+\item C: a binary RasterLayer showing colonized = 1 and non-colonized areas = 0
+\item C_mean: a RasterLayer representing mean values of frequency of
+colonization among replicates
+\item C_var: a RasterLayer representing variance among values of frequency of
 colonization of all replicates
+\item C_scenarios: a RasterLayer with values representing the number of the
+scenario when areas where colonized
+}
+\item if \code{results_by} = "event":
+\itemize{
+\item A_events: a RasterLayer with values representing the number of the
+dispersal event when areas where accessed
+\item C_events: a RasterLayer with values representing the number of the
+dispersal event when areas where colonized
+}
 }
 
+The number of dispersal events in results is continuous among scenarios. If
+10 dispersal events are defined and multiple scenarios exist in
+\code{suit_layers}, the first dispersal event in the second scenario will be
+number 11.
+
 If \code{write_to_directory} is set to TRUE, the elements described above
-and raster layers corresponding to all scenarios
-(if \code{write_all_scenarios} = TRUE) will be written in
+and raster layers corresponding to all scenarios (if \code{write_all} = TRUE),
+or events per scenario (depending on \code{results_by}) will be written in
 \code{output_directory}.
 }
 \description{
-dispersal_simulationR performs a multistep simulation of species
-dispersal to reconstruct areas that have been accessed and/or colonized
-based on environmental suitability and user-defined dispersal parameters.
+multistep simulation of species dispersal to reconstruct areas
+that have been or could be accessed and/or colonized based on environmental
+suitability and user-defined dispersal parameters.
 }
 \examples{
 # data
