@@ -76,7 +76,7 @@ which_colonized <- function(colonized_matrix, suitability_matrix = NULL,
 
   if (proportion < 1) {
     n <- nrow(colonized_cells)
-    ns <- ceiling(nr * proportion)
+    ns <- ceiling(n * proportion)
     set.seed(set_seed)
     colonized_cells <- colonized_cells[sample(n, ns, replace = FALSE), ]
     if (ns == 1) {
