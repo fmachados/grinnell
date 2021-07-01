@@ -127,7 +127,7 @@ which_accessed <- function(colonized_cells, angle_distance, layer_dim) {
 
 # runs simulation steps to update accessed areas
 dispersal_steps <- function(colonized_matrix, suitability_matrix, disperser_rules,
-                            proportion_colonized = 1, dispersal_kernel = "normal",
+                            proportion_to_disperse = 1, dispersal_kernel = "normal",
                             kernel_spread = 1, set_seed = 1) {
 
   # initial tests
@@ -146,7 +146,7 @@ dispersal_steps <- function(colonized_matrix, suitability_matrix, disperser_rule
 
   # data preparation
   colonized_cells <- which_colonized(colonized_matrix, suitability_matrix,
-                                     proportion_colonized, set_seed)
+                                     proportion_to_disperse, set_seed)
   Sv <- suitability_matrix[colonized_cells]
   n_dispersers <- nd_sval(Sv, disperser_rules)
 

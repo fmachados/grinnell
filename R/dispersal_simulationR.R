@@ -9,15 +9,14 @@
 #' that order.
 #' @param suit_layers (character) vector of names of suitability layers to be
 #' used as distinct scenarios. If more than one, the layer names must be ordered
-#' starting from the oldest scenario. Layer names should include parent
-#' directory if needed.
-#' @param starting_porportion (numeric) proportion of \code{data} to be used as
+#' starting from first to last scenario. All layers must have the same extent,
+#' resolution, number of cells, and projection. Layer names should include
+#' parent directory if needed.
+#' @param starting_proportion (numeric) proportion of \code{data} to be used as
 #' starting points for the simulation. Default = 0.5. All data is used if a
 #' value of 1 is defined.
-#' @param results_by (character) how to run replicates and return results.
-#' Options are: "scenario" or "event". If "scenario" the replicates are produced
-#' for each of the scenarios represented by layers in \code{suit_layers}. If
-#' "event", replicates are produced per dispersal event. Default = "scenario"
+#' @param proportion_to_disperse (numeric) proportion of colonized cells from
+#' which dispersers will start a new dispersal event; default = 1.
 #' @param dispersal_kernel (character) dispersal kernel (dispersal function)
 #' used to simulate the movement of the species. Options are: "normal",
 #' "log_normal". Default = "normal".
@@ -32,10 +31,14 @@
 #' per scenario or dispersal event, depending on \code{results_by}. Default = 10.
 #' @param threshold (numeric) percentage to be considered when excluding
 #' accessed or colonized cells with lower values. Default = 5.
+#' @param results_by (character) how to run replicates and return results.
+#' Options are: "scenario" or "event". If "scenario" the replicates are produced
+#' for each of the scenarios represented by layers in \code{suit_layers}. If
+#' "event", replicates are produced per dispersal event. Default = "scenario"
 #' @param return (character) the results to be returned or written. Options are:
 #' "all", "accessed", "colonized". Default = "all"
 #' @param set_seed (numeric) a seed to be used when sampling \code{data}
-#' according to \code{starting_porportion}. Default = 1.
+#' according to \code{starting_proportion}. Default = 1.
 #' @param write_to_directory (logical) whether to write results in
 #' \code{output_directory}. Default = FALSE.
 #' @param write_all (logical) valid if \code{results_by} = "scenario" and
@@ -55,7 +58,8 @@
 #' @rdname dispersal_simulationR
 #'
 #' @usage
-#' dispersal_simulationR(data, suit_layers, starting_porportion = 0.5,
+#' dispersal_simulationR(data, suit_layers, starting_proportion = 0.5,
+#'                       proportion_to_disperse = 1,
 #'                       dispersal_kernel = "normal",
 #'                       kernel_spread = 1, max_dispersers = 4,
 #'                       dispersal_events = 25, replicates = 10,
@@ -118,7 +122,8 @@
 #'                              return = "colonized")
 
 
-dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
+dispersal_simulationR <- function(data, suit_layers, starting_proportion = 0.5,
+                                  proportion_to_disperse = 1,
                                   dispersal_kernel = "normal",
                                   kernel_spread = 1, max_dispersers = 4,
                                   dispersal_events = 25, replicates = 10,
@@ -166,21 +171,21 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
   message("Running simulation:")
 
   if (results_by == "scenario") {
-    res <- scenario_wise_simulation(data, suit_layers,
-                                    starting_porportion, dispersal_kernel,
+    res <- scenario_wise_simulation(data, suit_layers, starting_proportion,
+                                    proportion_to_disperse, dispersal_kernel,
                                     kernel_spread, max_dispersers,
                                     dispersal_events, replicates,
                                     threshold, return, set_seed,
                                     write_to_directory, write_all,
                                     raster_format, output_directory)
   } else {
-    res <- event_wise_simulation(data, suit_layers,
-                                 starting_porportion, dispersal_kernel,
+    res <- event_wise_simulation(data, suit_layers, starting_proportion,
+                                 proportion_to_disperse, dispersal_kernel,
                                  kernel_spread, max_dispersers,
                                  dispersal_events, replicates,
                                  threshold, return, set_seed,
-                                 write_to_directory,
-                                 raster_format, output_directory)
+                                 write_to_directory, raster_format,
+                                 output_directory)
   }
 
   # end time
@@ -190,7 +195,7 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
   if (write_to_directory == TRUE) {
     timetot <- end - start
     cat("\nSimulation time\n\n",
-        "   Start date|time: ", format(start, usetz = TRUE), "\n",
+        "   Start date | time: ", format(start, usetz = TRUE), "\n",
         "   Running time: ", timetot, attr(timetot, "units"),
         file = outText, append = TRUE)
   }
@@ -211,7 +216,8 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
 #' @rdname dispersal_simulationR
 #' @export
 #' @usage
-#' scenario_wise_simulation(data, suit_layers, starting_porportion = 0.5,
+#' scenario_wise_simulation(data, suit_layers, starting_proportion = 0.5,
+#'                          proportion_to_disperse = 1,
 #'                          dispersal_kernel = "normal",
 #'                          kernel_spread = 1, max_dispersers = 4,
 #'                          dispersal_events = 25, replicates = 10,
@@ -220,7 +226,8 @@ dispersal_simulationR <- function(data, suit_layers, starting_porportion = 0.5,
 #'                          write_all = FALSE, raster_format = "GTiff",
 #'                          output_directory)
 
-scenario_wise_simulation <- function(data, suit_layers, starting_porportion = 0.5,
+scenario_wise_simulation <- function(data, suit_layers, starting_proportion = 0.5,
+                                     proportion_to_disperse = 1,
                                      dispersal_kernel = "normal",
                                      kernel_spread = 1, max_dispersers = 4,
                                      dispersal_events = 25, replicates = 10,
@@ -271,7 +278,7 @@ scenario_wise_simulation <- function(data, suit_layers, starting_porportion = 0.
       set_seed <- set_seed + j - 1
       if (i == 1) {
         C <- set_pop(data, l_meta$NW_vertex, layer_dim, l_meta$cell_size,
-                     starting_porportion, set_seed)
+                     starting_proportion, set_seed)
         A <- C
       } else {
         A <- matrix(list_acc[[j]], nrow = layer_dim[1], ncol = layer_dim[2])
@@ -284,7 +291,7 @@ scenario_wise_simulation <- function(data, suit_layers, starting_porportion = 0.
         #### running steps according to dispersers
         set_seed1 <- set_seed + ((k - 1) * 10)
         A_now <- dispersal_steps(colonized_matrix = C, suitability_matrix = S,
-                                 disperser_rules = d_rules, proportion_colonized = 1,
+                                 disperser_rules = d_rules, proportion_to_disperse,
                                  dispersal_kernel, kernel_spread, set_seed1)
 
         #### updating A and C
@@ -360,7 +367,7 @@ scenario_wise_simulation <- function(data, suit_layers, starting_porportion = 0.
   form1 <- rformat_type(raster_format)
 
   summ <- list(Scenarios = length(suit_layers),
-               Starting_porportion = starting_porportion,
+               starting_proportion = starting_proportion,
                Dispersal_events = dispersal_events, Replicates = replicates,
                Dispersal_kernel = dispersal_kernel,
                Kernel_spread_SD = kernel_spread, Max_dispersers = max_dispersers)
@@ -414,7 +421,8 @@ scenario_wise_simulation <- function(data, suit_layers, starting_porportion = 0.
 #' @rdname dispersal_simulationR
 #' @export
 #' @usage
-#' event_wise_simulation(data, suit_layers, starting_porportion = 0.5,
+#' event_wise_simulation(data, suit_layers, starting_proportion = 0.5,
+#'                       proportion_to_disperse = 1,
 #'                       dispersal_kernel = "normal",
 #'                       kernel_spread = 1, max_dispersers = 4,
 #'                       dispersal_events = 25, replicates = 10,
@@ -422,7 +430,8 @@ scenario_wise_simulation <- function(data, suit_layers, starting_porportion = 0.
 #'                       set_seed = 1, write_to_directory = FALSE,
 #'                       raster_format = "GTiff", output_directory)
 
-event_wise_simulation <- function(data, suit_layers, starting_porportion = 0.5,
+event_wise_simulation <- function(data, suit_layers, starting_proportion = 0.5,
+                                  proportion_to_disperse = 1,
                                   dispersal_kernel = "normal",
                                   kernel_spread = 1, max_dispersers = 4,
                                   dispersal_events = 25, replicates = 10,
@@ -474,7 +483,7 @@ event_wise_simulation <- function(data, suit_layers, starting_porportion = 0.5,
         set_seed <- set_seed + k - 1
         if (i == 1 & j == 1) {
           C <- set_pop(data, l_meta$NW_vertex, layer_dim, l_meta$cell_size,
-                       starting_porportion, set_seed)
+                       starting_proportion, set_seed)
           A <- C
         } else {
           A <- matrix(list_acc[[k]], nrow = layer_dim[1], ncol = layer_dim[2])
@@ -485,7 +494,7 @@ event_wise_simulation <- function(data, suit_layers, starting_porportion = 0.5,
         ### updating matrices
         #### running steps according to dispersers
         A_now <- dispersal_steps(colonized_matrix = C, suitability_matrix = S,
-                                 disperser_rules = d_rules, proportion_colonized = 1,
+                                 disperser_rules = d_rules, proportion_to_disperse,
                                  dispersal_kernel, kernel_spread, set_seed)
 
         #### updating A and C
@@ -547,7 +556,7 @@ event_wise_simulation <- function(data, suit_layers, starting_porportion = 0.5,
   form1 <- rformat_type(raster_format)
 
   summ <- list(Scenarios = length(suit_layers),
-               Starting_porportion = starting_porportion,
+               starting_proportion = starting_proportion,
                Dispersal_events = dispersal_events, Replicates = replicates,
                Dispersal_kernel = dispersal_kernel,
                Kernel_spread_SD = kernel_spread, Max_dispersers = max_dispersers)

@@ -6,7 +6,8 @@
 \alias{event_wise_simulation}
 \title{Simulation of species dispersal processes}
 \usage{
-dispersal_simulationR(data, suit_layers, starting_porportion = 0.5,
+dispersal_simulationR(data, suit_layers, starting_proportion = 0.5,
+                      proportion_to_disperse = 1,
                       dispersal_kernel = "normal",
                       kernel_spread = 1, max_dispersers = 4,
                       dispersal_events = 25, replicates = 10,
@@ -15,7 +16,8 @@ dispersal_simulationR(data, suit_layers, starting_porportion = 0.5,
                       write_to_directory = FALSE, write_all = FALSE,
                       raster_format = "GTiff", output_directory)
 
-scenario_wise_simulation(data, suit_layers, starting_porportion = 0.5,
+scenario_wise_simulation(data, suit_layers, starting_proportion = 0.5,
+                         proportion_to_disperse = 1,
                          dispersal_kernel = "normal",
                          kernel_spread = 1, max_dispersers = 4,
                          dispersal_events = 25, replicates = 10,
@@ -24,7 +26,8 @@ scenario_wise_simulation(data, suit_layers, starting_porportion = 0.5,
                          write_all = FALSE, raster_format = "GTiff",
                          output_directory)
 
-event_wise_simulation(data, suit_layers, starting_porportion = 0.5,
+event_wise_simulation(data, suit_layers, starting_proportion = 0.5,
+                      proportion_to_disperse = 1,
                       dispersal_kernel = "normal",
                       kernel_spread = 1, max_dispersers = 4,
                       dispersal_events = 25, replicates = 10,
@@ -39,12 +42,16 @@ that order.}
 
 \item{suit_layers}{(character) vector of names of suitability layers to be
 used as distinct scenarios. If more than one, the layer names must be ordered
-starting from the oldest scenario. Layer names should include parent
-directory if needed.}
+starting from first to last scenario. All layers must have the same extent,
+resolution, number of cells, and projection. Layer names should include
+parent directory if needed.}
 
-\item{starting_porportion}{(numeric) proportion of \code{data} to be used as
+\item{starting_proportion}{(numeric) proportion of \code{data} to be used as
 starting points for the simulation. Default = 0.5. All data is used if a
 value of 1 is defined.}
+
+\item{proportion_to_disperse}{(numeric) proportion of colonized cells from
+which dispersers will start a new dispersal event; default = 1.}
 
 \item{dispersal_kernel}{(character) dispersal kernel (dispersal function)
 used to simulate the movement of the species. Options are: "normal",
@@ -75,7 +82,7 @@ for each of the scenarios represented by layers in \code{suit_layers}. If
 "all", "accessed", "colonized". Default = "all"}
 
 \item{set_seed}{(numeric) a seed to be used when sampling \code{data}
-according to \code{starting_porportion}. Default = 1.}
+according to \code{starting_proportion}. Default = 1.}
 
 \item{write_to_directory}{(logical) whether to write results in
 \code{output_directory}. Default = FALSE.}

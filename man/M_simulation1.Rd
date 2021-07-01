@@ -4,7 +4,7 @@
 \alias{M_simulation1}
 \title{Simulation of species accessible areas (M) R version}
 \usage{
-M_simulation1(data, current_variables, starting_porportion = 0.5,
+M_simulation1(data, current_variables, starting_proportion = 0.5,
               barriers = NULL, scale = TRUE, center = TRUE,
               project = FALSE, projection_variables = NULL,
               dispersal_kernel = "normal", kernel_spread = 1,
@@ -23,7 +23,7 @@ be used to run the simulation; columns must be: species, longitude, latitude.}
 \item{current_variables}{RasterStack of environmental variables representing
 "current" conditions (interglacial). Recommended projection WGS84 (EPSG:4326).}
 
-\item{starting_porportion}{(numeric) proportion of \code{data} located in
+\item{starting_proportion}{(numeric) proportion of \code{data} located in
 suitable areas to be used as starting points for the simulation.
 Default = 0.5. All data is used if a value of 1 is defined.}
 
@@ -102,7 +102,7 @@ for changing the scenario. Default = 1 (one thousand years).}
 Default = "GTiff".}
 
 \item{set_seed}{(numeric) a seed to be used when sampling \code{data}
-according to \code{starting_porportion}. Default = 1.}
+according to \code{starting_proportion}. Default = 1.}
 
 \item{write_all_scenarios}{(logical) whether or not to write results
 for all scenarios. The default, FALSE, writes only the final results.}
@@ -123,11 +123,12 @@ started.
 replicates
 \item a RasterLayer representing variance among values of accessibility frequency
 of all replicates
+\item if defined, the RasterLayer used in \code{barriers}, else NULL
 }
 
 The complete set of results derived from data preparation and the simulation
 is written in \code{output_directory}. These results include the ones
-mentioned above, plus:
+mentioned above (except barriers), plus:
 \itemize{
 \item a folder containing results from the PCA performed
 \item a folder containing results from the preparation of suitability layer(s)

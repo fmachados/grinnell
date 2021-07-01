@@ -179,6 +179,17 @@ M_preparation <- function(directory, A_bin = NULL, A_name = NULL,
 }
 
 
+# transparent colors
+t_col <- function(col, alpha = 1, names = NULL) {
+  rgb_col <- col2rgb(col)
+  t_col <- rgb(rgb_col[1, ], rgb_col[2, ], rgb_col[3, ],
+               alpha = (alpha * 100) * 255 / 100,
+               names = names, maxColorValue = 255)
+
+  return(t_col)
+}
+
+
 
 # saves plot of accessed areas (M) after simulation is done
 save_Mplot <- function(ellipsoid_model, suitability_layer, M_polygon,
@@ -196,5 +207,36 @@ save_Mplot <- function(ellipsoid_model, suitability_layer, M_polygon,
   sp::plot(M_polygon, lwd = 1, border = "blue4", add = TRUE)
   points(ellipsoid_model[[1]][, 1:2], pch = 16, cex = 0.6)
   box()
+  dev.off()
+}
+
+
+
+# saves plot results from event - wise simulation
+save_event_plot <- function(data, event_simulation_results, barriers = NULL,
+                            size_proportion = 0.55, output_directory) {
+
+  cola <- t_col("black", 0.5)
+
+  png(paste0(output_directory, "/Accessed_colonized_per_event.png"),
+      width = 166, height = 80, units = "mm", res = 600)
+
+  par(mfrow = c(1, 2), mar = c(0.5, 0.5, 1, 1))
+  par(cex = size_proportion)
+  raster::plot(event_simulation_results$A_events, main = "Accessed areas",
+               axes = FALSE, legend = FALSE)
+  if (!is.null(barriers)) {
+    raster::image(barriers, col = cola, axes = FALSE, add = TRUE)
+  }
+  points(data[, 2:3], pch = 16, cex = 0.3)
+
+  par(cex = size_proportion)
+  raster::plot(event_simulation_results$C_events, main = "Colonized areas",
+               axes = FALSE)
+  if (!is.null(barriers)) {
+    raster::image(barriers, col = cola, axes = FALSE, add = TRUE)
+  }
+  points(data[, 2:3], pch = 16, cex = 0.3)
+
   dev.off()
 }
