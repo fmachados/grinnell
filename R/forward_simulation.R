@@ -45,6 +45,8 @@
 #' created.
 #'
 #' @export
+#' @importFrom grDevices rgb col2rgb
+#' @importFrom raster plot
 #'
 #' @usage
 #' forward_simulation(data, suit_layers, barriers = NULL,
