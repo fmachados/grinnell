@@ -4,16 +4,21 @@
 #' that could be accessed and colonized based on environmental
 #' suitability and user-defined dispersal parameters.
 #'
-#' @param data data.frame containing geographic coordinates of occurrences of
-#' the species of interest. Columns must be: species, longitude, latitude, in
-#' that order.
-#' @param suit_layers (character) vector of names of suitability layers to be
-#' used as distinct scenarios. If more than one, the layer names must be ordered
-#' starting from first to last scenario. All layers must have the same extent,
-#' resolution, number of cells, and projection. Layer names should include
-#' parent directory if needed.
-#' @param barriers RasterLayer representing dispersal barriers for the species.
-#' This layer must have the same extent and projection than
+#' @param suit_layer (character) name of (local) raster layer containing values
+#' of suitability for the species of interest in the study region over which the
+#' simulation will run. The name of the layer name should include parent
+#' directory if needed.
+#' @param data (optional) data.frame containing geographic coordinates of
+#' occurrences of the species of interest. Columns must be: species, longitude,
+#' latitude, in that order.
+#' @param suit_forward (optional) name of (local) raster layer(s) containing
+#' values of suitability for the species of interest in the study region over
+#' which the simulation will run. If more than one, layer names must be
+#' ordered from first to last scenario. These layers must have the same
+#' extent, resolution, number of cells, and projection than \code{suit_layer}.
+#' Layer names should include parent directory if needed.
+#' @param barriers (optional) RasterLayer representing dispersal barriers for
+#' the species. This layer must have the same extent and projection than
 #' \code{suit_layers}. The only values allowed in this layer are 1 and NA;
 #' 1 = barrier. Default = NULL.
 #' @param starting_proportion (numeric) proportion of \code{data} to be used as
@@ -49,8 +54,8 @@
 #' @importFrom raster plot
 #'
 #' @usage
-#' forward_simulation(data, suit_layers, barriers = NULL,
-#'                    starting_proportion = 0.5,
+#' forward_simulation(suit_layer, data = NULL, suit_forward = NULL,
+#'                    barriers = NULL, starting_proportion = 0.5,
 #'                    proportion_to_disperse = 1,
 #'                    dispersal_kernel = "normal",
 #'                    kernel_spread = 1, max_dispersers = 4,
@@ -92,45 +97,36 @@
 #' suitability <- system.file("extdata/suitability.tif", package = "grinnell")
 #'
 #' # simulation current
-#' f_s <- forward_simulation(data = records, suit_layers = suitability,
-#'                           barriers = NULL, starting_proportion = 0.5,
-#'                           proportion_to_disperse = 1,
+#' f_s <- forward_simulation(suit_layer = suitability, data = records,
 #'                           dispersal_kernel = "normal",
 #'                           kernel_spread = 2, max_dispersers = 2,
 #'                           dispersal_events = 15, replicates = 3,
-#'                           threshold = 5, set_seed = 1, out_format = "GTiff",
 #'                           output_directory = file.path(tempdir(), "eg_fsim"))
 #'
 #' # simulation current and future
 #' \donttest{
-#' suits <- list.files(system.file("extdata/", package = "grinnell"),
-#'                     pattern = "suitability", full.names = TRUE)[2:1] # needs to be ordered
+#' suitf <- system.file("extdata/suitability_fut.tif", package = "grinnell")
 #'
-#' f_s1 <- forward_simulation(data = records, suit_layers = suits,
-#'                            barriers = NULL, starting_proportion = 0.5,
-#'                            proportion_to_disperse = 1,
-#'                            dispersal_kernel = "normal",
+#' f_s1 <- forward_simulation(suit_layer = suitability, data = records,
+#'                            suit_forward = suitf, dispersal_kernel = "normal",
 #'                            kernel_spread = 2, max_dispersers = 2,
 #'                            dispersal_events = 15, replicates = 3,
-#'                            threshold = 5, set_seed = 1, out_format = "GTiff",
 #'                            output_directory = file.path(tempdir(), "eg_fsim1"))
 #'
 #' # simulation current and future using dispersal barriers
 #' barrier <- raster::raster(system.file("extdata/barrier.tif",
 #'                                       package = "grinnell"))
 #'
-#' f_s2 <- forward_simulation(data = records, suit_layers = suits,
-#'                            barriers = barrier, starting_proportion = 0.5,
-#'                            proportion_to_disperse = 1,
+#' f_s2 <- forward_simulation(suit_layer = suitability, data = records,
+#'                            suit_forward = suitf, barriers = barrier,
 #'                            dispersal_kernel = "normal",
 #'                            kernel_spread = 2, max_dispersers = 2,
 #'                            dispersal_events = 15, replicates = 3,
-#'                            threshold = 5, set_seed = 1, out_format = "GTiff",
 #'                            output_directory = file.path(tempdir(), "eg_fsim2"))
 #' }
 
-forward_simulation <- function(data, suit_layers, barriers = NULL,
-                               starting_proportion = 0.5,
+forward_simulation <- function(suit_layer, data = NULL, suit_forward = NULL,
+                               barriers = NULL, starting_proportion = 0.5,
                                proportion_to_disperse = 1,
                                dispersal_kernel = "normal",
                                kernel_spread = 1, max_dispersers = 4,
@@ -139,25 +135,33 @@ forward_simulation <- function(data, suit_layers, barriers = NULL,
                                out_format = "GTiff", output_directory) {
   # --------
   # testing for initial requirements
-  if (missing(data)) {
-    stop("Argument 'data' must be defined")
-  }
-  if (missing(suit_layers)) {
-    stop("Argument 'suit_layers' must be defined")
+  if (missing(suit_layer)) {
+    stop("Argument 'suit_layer' must be defined")
   }
   if (missing(output_directory)) {
     stop("Argument 'output_directory' must be defined")
   }
   if (!is.null(barriers)) {
-    suit_layer <- raster::raster(suit_layers[1])
-    if (suit_layer@extent != barriers@extent) {
-      stop("'barriers' and 'suit_layers' must have the same extent")
+    suit_lay <- raster::raster(suit_layer)
+    if (suit_lay@extent != barriers@extent) {
+      stop("'barriers' and 'suit_layer' must have the same extent")
     }
   }
 
   # --------
   # preparing data
   message("Preparing data to run simulation...")
+
+  ## defining initial points if data = NULL
+  if (is.null(data)) {
+    if (is.null(barriers)) {
+      suit_lay <- raster::raster(suit_layer)
+    }
+    noz <- which((suit_lay[] > 0))
+    noz <- raster::xyFromCell(suit_lay, noz)
+    data <- data.frame(species = "Species", longitude = noz[, 1],
+                       latitude = noz[, 2])
+  }
 
   ## output directory and raster file type
   dir.create(output_directory)
@@ -173,21 +177,35 @@ forward_simulation <- function(data, suit_layers, barriers = NULL,
     suit_fol <- paste0(out_dir, "/Suitability_barrier_corrected")
     dir.create(suit_fol)
 
-    suit_name <- vapply(1:length(suit_layers), FUN.VALUE = character(1),
-                        function(x) {
-      if (x > 1) {
-        suit_layer <- raster::raster(suit_layers[x])
-      }
-      suit_layer <- suit_layer * barr
+    if (is.null(suit_forward)) {
+      suit_lay <- suit_lay * barr
 
-      ## write suitability layer
-      s_name <- paste0(suit_fol, "/suitability", x, ftype)
-      raster::writeRaster(suit_layer, filename = s_name, format = out_format)
+      s_name <- paste0(suit_fol, "/suitability", ftype)
+      raster::writeRaster(suit_lay, filename = s_name, format = out_format)
 
-      normalizePath(s_name)
-    })
+      suit_name <- normalizePath(s_name)
+
+    } else {
+      suits <- c(suit_layer, suit_forward)
+      len <- length(suits)
+      suit_name <- vapply(1:len, FUN.VALUE = character(1), function(x) {
+        if (x > 1) {
+          suit_lay <- raster::raster(suits[x])
+        }
+        suit_lay <- suit_lay * barr
+
+        s_name <- paste0(suit_fol, "/suitability", x, ftype)
+        raster::writeRaster(suit_lay, filename = s_name, format = out_format)
+
+        normalizePath(s_name)
+      })
+    }
   } else {
-    suit_name <- normalizePath(suit_layers)
+    if (is.null(suit_forward)) {
+      suit_name <- normalizePath(suit_layer)
+    } else {
+      suit_name <- normalizePath(c(suit_layer, suit_forward))
+    }
   }
 
   ## occurrences relevant for simulation

@@ -4,8 +4,8 @@
 \alias{forward_simulation}
 \title{Simulation of species dispersal to future}
 \usage{
-forward_simulation(data, suit_layers, barriers = NULL,
-                   starting_proportion = 0.5,
+forward_simulation(suit_layer, data = NULL, suit_forward = NULL,
+                   barriers = NULL, starting_proportion = 0.5,
                    proportion_to_disperse = 1,
                    dispersal_kernel = "normal",
                    kernel_spread = 1, max_dispersers = 4,
@@ -14,18 +14,24 @@ forward_simulation(data, suit_layers, barriers = NULL,
                    out_format = "GTiff", output_directory)
 }
 \arguments{
-\item{data}{data.frame containing geographic coordinates of occurrences of
-the species of interest. Columns must be: species, longitude, latitude, in
-that order.}
+\item{suit_layer}{(character) name of (local) raster layer containing values
+of suitability for the species of interest in the study region over which the
+simulation will run. The name of the layer name should include parent
+directory if needed.}
 
-\item{suit_layers}{(character) vector of names of suitability layers to be
-used as distinct scenarios. If more than one, the layer names must be ordered
-starting from first to last scenario. All layers must have the same extent,
-resolution, number of cells, and projection. Layer names should include
-parent directory if needed.}
+\item{data}{(optional) data.frame containing geographic coordinates of
+occurrences of the species of interest. Columns must be: species, longitude,
+latitude, in that order.}
 
-\item{barriers}{RasterLayer representing dispersal barriers for the species.
-This layer must have the same extent and projection than
+\item{suit_forward}{(optional) name of (local) raster layer(s) containing
+values of suitability for the species of interest in the study region over
+which the simulation will run. If more than one, layer names must be
+ordered from first to last scenario. These layers must have the same
+extent, resolution, number of cells, and projection than \code{suit_layer}.
+Layer names should include parent directory if needed.}
+
+\item{barriers}{(optional) RasterLayer representing dispersal barriers for
+the species. This layer must have the same extent and projection than
 \code{suit_layers}. The only values allowed in this layer are 1 and NA;
 1 = barrier. Default = NULL.}
 
@@ -110,40 +116,31 @@ data("records", package = "grinnell")
 suitability <- system.file("extdata/suitability.tif", package = "grinnell")
 
 # simulation current
-f_s <- forward_simulation(data = records, suit_layers = suitability,
-                          barriers = NULL, starting_proportion = 0.5,
-                          proportion_to_disperse = 1,
+f_s <- forward_simulation(suit_layer = suitability, data = records,
                           dispersal_kernel = "normal",
                           kernel_spread = 2, max_dispersers = 2,
                           dispersal_events = 15, replicates = 3,
-                          threshold = 5, set_seed = 1, out_format = "GTiff",
                           output_directory = file.path(tempdir(), "eg_fsim"))
 
 # simulation current and future
 \donttest{
-suits <- list.files(system.file("extdata/", package = "grinnell"),
-                    pattern = "suitability", full.names = TRUE)[2:1] # needs to be ordered
+suitf <- system.file("extdata/suitability_fut.tif", package = "grinnell")
 
-f_s1 <- forward_simulation(data = records, suit_layers = suits,
-                           barriers = NULL, starting_proportion = 0.5,
-                           proportion_to_disperse = 1,
-                           dispersal_kernel = "normal",
+f_s1 <- forward_simulation(suit_layer = suitability, data = records,
+                           suit_forward = suitf, dispersal_kernel = "normal",
                            kernel_spread = 2, max_dispersers = 2,
                            dispersal_events = 15, replicates = 3,
-                           threshold = 5, set_seed = 1, out_format = "GTiff",
                            output_directory = file.path(tempdir(), "eg_fsim1"))
 
 # simulation current and future using dispersal barriers
 barrier <- raster::raster(system.file("extdata/barrier.tif",
                                       package = "grinnell"))
 
-f_s2 <- forward_simulation(data = records, suit_layers = suits,
-                           barriers = barrier, starting_proportion = 0.5,
-                           proportion_to_disperse = 1,
+f_s2 <- forward_simulation(suit_layer = suitability, data = records,
+                           suit_forward = suitf, barriers = barrier,
                            dispersal_kernel = "normal",
                            kernel_spread = 2, max_dispersers = 2,
                            dispersal_events = 15, replicates = 3,
-                           threshold = 5, set_seed = 1, out_format = "GTiff",
                            output_directory = file.path(tempdir(), "eg_fsim2"))
 }
 }
