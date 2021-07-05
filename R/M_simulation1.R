@@ -11,6 +11,10 @@
 #' @param starting_proportion (numeric) proportion of \code{data} located in
 #' suitable areas to be used as starting points for the simulation.
 #' Default = 0.5. All data is used if a value of 1 is defined.
+#' @param sampling_rule (character) rule to be used to sample a
+#' \code{starting_proportion} of points to run dispersal simulation steps.
+#' Options are: "random" and "suitability". Using the option "suitability"
+#' prioritizes records with higher suitability values. Default = "random".
 #' @param barriers RasterLayer representing dispersal barriers for the species.
 #' This layer must have the same extent and projection than
 #' \code{current_variables}. The only values allowed in this layer are 1 and NA;
@@ -107,8 +111,8 @@
 #'
 #' @usage
 #' M_simulation1(data, current_variables, starting_proportion = 0.5,
-#'               barriers = NULL, scale = TRUE, center = TRUE,
-#'               project = FALSE, projection_variables = NULL,
+#'               sampling_rule = "random", barriers = NULL, scale = TRUE,
+#'               center = TRUE, project = FALSE, projection_variables = NULL,
 #'               dispersal_kernel = "normal", kernel_spread = 1,
 #'               max_dispersers = 4, suitability_threshold = 5,
 #'               replicates = 10, dispersal_events = 25,
@@ -184,8 +188,9 @@
 #' }
 
 M_simulation1 <- function(data, current_variables, starting_proportion = 0.5,
-                          barriers = NULL, scale = TRUE, center = TRUE,
-                          project = FALSE, projection_variables = NULL,
+                          sampling_rule = "random", barriers = NULL,
+                          scale = TRUE, center = TRUE, project = FALSE,
+                          projection_variables = NULL,
                           dispersal_kernel = "normal", kernel_spread = 1,
                           max_dispersers = 4, suitability_threshold = 5,
                           replicates = 10, dispersal_events = 25,
@@ -205,6 +210,9 @@ M_simulation1 <- function(data, current_variables, starting_proportion = 0.5,
   }
   if (missing(output_directory)) {
     stop("Argument 'output_directory' must be defined")
+  }
+  if (!sampling_rule %in% c("random", "suitability")) {
+    stop("Argument 'sampling_rule' is not valid")
   }
 
   n <- raster::nlayers(current_variables)
@@ -357,6 +365,8 @@ M_simulation1 <- function(data, current_variables, starting_proportion = 0.5,
   message("")
   res <- dispersal_simulationR(data = oca, suit_layers = suit_name,
                                starting_proportion = starting_proportion,
+                               proportion_to_disperse = 1,
+                               sampling_rule = sampling_rule,
                                dispersal_kernel = dispersal_kernel,
                                kernel_spread = kernel_spread,
                                max_dispersers = max_dispersers,

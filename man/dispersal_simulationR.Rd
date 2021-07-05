@@ -7,7 +7,7 @@
 \title{Simulation of species dispersal processes}
 \usage{
 dispersal_simulationR(data, suit_layers, starting_proportion = 0.5,
-                      proportion_to_disperse = 1,
+                      proportion_to_disperse = 1, sampling_rule = "random",
                       dispersal_kernel = "normal",
                       kernel_spread = 1, max_dispersers = 4,
                       dispersal_events = 25, replicates = 10,
@@ -17,7 +17,7 @@ dispersal_simulationR(data, suit_layers, starting_proportion = 0.5,
                       raster_format = "GTiff", output_directory)
 
 scenario_wise_simulation(data, suit_layers, starting_proportion = 0.5,
-                         proportion_to_disperse = 1,
+                         proportion_to_disperse = 1, sampling_rule = "random",
                          dispersal_kernel = "normal",
                          kernel_spread = 1, max_dispersers = 4,
                          dispersal_events = 25, replicates = 10,
@@ -27,7 +27,7 @@ scenario_wise_simulation(data, suit_layers, starting_proportion = 0.5,
                          output_directory)
 
 event_wise_simulation(data, suit_layers, starting_proportion = 0.5,
-                      proportion_to_disperse = 1,
+                      proportion_to_disperse = 1, sampling_rule = "random",
                       dispersal_kernel = "normal",
                       kernel_spread = 1, max_dispersers = 4,
                       dispersal_events = 25, replicates = 10,
@@ -37,8 +37,9 @@ event_wise_simulation(data, suit_layers, starting_proportion = 0.5,
 }
 \arguments{
 \item{data}{data.frame containing geographic coordinates of occurrences of
-the species of interest. Columns must be: species, longitude, latitude, in
-that order.}
+the species of interest. Mandatory columns are: "species", "longitude",
+"latitude", in that order. Optionally, a fourth column "suitability" should
+be used when \code{sampling_rule} = "suitability".}
 
 \item{suit_layers}{(character) vector of names of suitability layers to be
 used as distinct scenarios. If more than one, the layer names must be ordered
@@ -52,6 +53,12 @@ value of 1 is defined.}
 
 \item{proportion_to_disperse}{(numeric) proportion of colonized cells from
 which dispersers will start a new dispersal event; default = 1.}
+
+\item{sampling_rule}{(character) rule to be used to sample a
+\code{starting_proportion} of \code{data} and a \code{proportion_to_disperse}
+from colonized cells to run dispersal simulation steps. Options are: "random"
+and "suitability". Using the option "suitability" prioritizes records in
+with higher suitability values. Default = "random".}
 
 \item{dispersal_kernel}{(character) dispersal kernel (dispersal function)
 used to simulate the movement of the species. Options are: "normal",

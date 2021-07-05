@@ -6,7 +6,7 @@
 \usage{
 forward_simulation(suit_layer, data = NULL, suit_forward = NULL,
                    barriers = NULL, starting_proportion = 0.5,
-                   proportion_to_disperse = 1,
+                   proportion_to_disperse = 1, sampling_rule = "random",
                    dispersal_kernel = "normal",
                    kernel_spread = 1, max_dispersers = 4,
                    dispersal_events = 25, replicates = 10,
@@ -20,8 +20,8 @@ simulation will run. The name of the layer name should include parent
 directory if needed.}
 
 \item{data}{(optional) data.frame containing geographic coordinates of
-occurrences of the species of interest. Columns must be: species, longitude,
-latitude, in that order.}
+occurrences of the species of interest. Columns must be: "species", "longitude",
+"latitude", in that order.}
 
 \item{suit_forward}{(optional) name of (local) raster layer(s) containing
 values of suitability for the species of interest in the study region over
@@ -41,6 +41,12 @@ value of 1 is defined.}
 
 \item{proportion_to_disperse}{(numeric) proportion of colonized cells from
 which dispersers will start a new dispersal event; default = 1.}
+
+\item{sampling_rule}{(character) rule to be used to sample a
+\code{starting_proportion} of \code{data} and a \code{proportion_to_disperse}
+from colonized cells to run dispersal simulation steps. Options are: "random"
+and "suitability". Using the option "suitability" prioritizes records in
+with higher suitability values. Default = "random".}
 
 \item{dispersal_kernel}{(character) dispersal kernel (dispersal function)
 used to simulate the movement of the species. Options are: "normal",

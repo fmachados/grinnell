@@ -5,8 +5,8 @@
 \title{Simulation of species accessible areas (M) R version}
 \usage{
 M_simulation1(data, current_variables, starting_proportion = 0.5,
-              barriers = NULL, scale = TRUE, center = TRUE,
-              project = FALSE, projection_variables = NULL,
+              sampling_rule = "random", barriers = NULL, scale = TRUE,
+              center = TRUE, project = FALSE, projection_variables = NULL,
               dispersal_kernel = "normal", kernel_spread = 1,
               max_dispersers = 4, suitability_threshold = 5,
               replicates = 10, dispersal_events = 25,
@@ -26,6 +26,11 @@ be used to run the simulation; columns must be: species, longitude, latitude.}
 \item{starting_proportion}{(numeric) proportion of \code{data} located in
 suitable areas to be used as starting points for the simulation.
 Default = 0.5. All data is used if a value of 1 is defined.}
+
+\item{sampling_rule}{(character) rule to be used to sample a
+\code{starting_proportion} of points to run dispersal simulation steps.
+Options are: "random" and "suitability". Using the option "suitability"
+prioritizes records with higher suitability values. Default = "random".}
 
 \item{barriers}{RasterLayer representing dispersal barriers for the species.
 This layer must have the same extent and projection than

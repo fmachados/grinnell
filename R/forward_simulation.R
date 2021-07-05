@@ -9,8 +9,8 @@
 #' simulation will run. The name of the layer name should include parent
 #' directory if needed.
 #' @param data (optional) data.frame containing geographic coordinates of
-#' occurrences of the species of interest. Columns must be: species, longitude,
-#' latitude, in that order.
+#' occurrences of the species of interest. Columns must be: "species", "longitude",
+#' "latitude", in that order.
 #' @param suit_forward (optional) name of (local) raster layer(s) containing
 #' values of suitability for the species of interest in the study region over
 #' which the simulation will run. If more than one, layer names must be
@@ -26,6 +26,11 @@
 #' value of 1 is defined.
 #' @param proportion_to_disperse (numeric) proportion of colonized cells from
 #' which dispersers will start a new dispersal event; default = 1.
+#' @param sampling_rule (character) rule to be used to sample a
+#' \code{starting_proportion} of \code{data} and a \code{proportion_to_disperse}
+#' from colonized cells to run dispersal simulation steps. Options are: "random"
+#' and "suitability". Using the option "suitability" prioritizes records in
+#' with higher suitability values. Default = "random".
 #' @param dispersal_kernel (character) dispersal kernel (dispersal function)
 #' used to simulate the movement of the species. Options are: "normal",
 #' "log_normal". Default = "normal".
@@ -51,12 +56,12 @@
 #'
 #' @export
 #' @importFrom grDevices rgb col2rgb
-#' @importFrom raster plot
+#' @importFrom raster plot xyFromCell
 #'
 #' @usage
 #' forward_simulation(suit_layer, data = NULL, suit_forward = NULL,
 #'                    barriers = NULL, starting_proportion = 0.5,
-#'                    proportion_to_disperse = 1,
+#'                    proportion_to_disperse = 1, sampling_rule = "random",
 #'                    dispersal_kernel = "normal",
 #'                    kernel_spread = 1, max_dispersers = 4,
 #'                    dispersal_events = 25, replicates = 10,
@@ -128,6 +133,7 @@
 forward_simulation <- function(suit_layer, data = NULL, suit_forward = NULL,
                                barriers = NULL, starting_proportion = 0.5,
                                proportion_to_disperse = 1,
+                               sampling_rule = "random",
                                dispersal_kernel = "normal",
                                kernel_spread = 1, max_dispersers = 4,
                                dispersal_events = 25, replicates = 10,
@@ -141,6 +147,9 @@ forward_simulation <- function(suit_layer, data = NULL, suit_forward = NULL,
   if (missing(output_directory)) {
     stop("Argument 'output_directory' must be defined")
   }
+  if (!sampling_rule %in% c("random", "suitability")) {
+    stop("Argument 'sampling_rule' is not valid")
+  }
   if (!is.null(barriers)) {
     suit_lay <- raster::raster(suit_layer)
     if (suit_lay@extent != barriers@extent) {
@@ -151,17 +160,6 @@ forward_simulation <- function(suit_layer, data = NULL, suit_forward = NULL,
   # --------
   # preparing data
   message("Preparing data to run simulation...")
-
-  ## defining initial points if data = NULL
-  if (is.null(data)) {
-    if (is.null(barriers)) {
-      suit_lay <- raster::raster(suit_layer)
-    }
-    noz <- which((suit_lay[] > 0))
-    noz <- raster::xyFromCell(suit_lay, noz)
-    data <- data.frame(species = "Species", longitude = noz[, 1],
-                       latitude = noz[, 2])
-  }
 
   ## output directory and raster file type
   dir.create(output_directory)
@@ -208,13 +206,13 @@ forward_simulation <- function(suit_layer, data = NULL, suit_forward = NULL,
     }
   }
 
-  ## occurrences relevant for simulation
-  suit_bar <- raster::extract(raster::raster(suit_name[1]), data[, 2:3])
-  data <- data[suit_bar > 0, ]
+  ## occurrences relevant for simulation, defining initial points if data = NULL
+  suit_lay <- raster::raster(suit_name[1])
+  data <- suitable_cells(suit_lay, data = data)
 
   ## write relevant records
   oca_nam <- paste0(out_dir, "/occ_simulation.csv")
-  write.csv(data, oca_nam, row.names = FALSE)
+  write.csv(data[, 1:3], oca_nam, row.names = FALSE)
 
   # --------
   # running simulation
@@ -222,6 +220,7 @@ forward_simulation <- function(suit_layer, data = NULL, suit_forward = NULL,
   res <- dispersal_simulationR(data = data, suit_layers = suit_name,
                                starting_proportion = starting_proportion,
                                proportion_to_disperse = proportion_to_disperse,
+                               sampling_rule = sampling_rule,
                                dispersal_kernel = dispersal_kernel,
                                kernel_spread = kernel_spread,
                                max_dispersers = max_dispersers,

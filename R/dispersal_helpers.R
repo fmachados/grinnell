@@ -31,14 +31,20 @@ set_loc <- function(coord, NW_vertex, cell_size) {
 
 
 # creates a matrix where all cells with records are set as 1 and the others as 0
-set_pop <- function(spdata, NW_vertex, layer_dim, cell_size,
-                    proportion = 1, set_seed = 1) {
+set_pop <- function(data, NW_vertex, layer_dim, cell_size,
+                    proportion = 1, rule = "random", set_seed = 1) {
   if (proportion == 1) {
-    samp <- spdata[, 2:3]
+    samp <- data[, 2:3]
   } else {
-    nr <- nrow(spdata)
+    nr <- nrow(data)
+    n <- round(nr * proportion)
+
     set.seed(set_seed)
-    samp <- spdata[sample(nr, round(nr * proportion), replace = FALSE), 2:3]
+    if (rule == "random") {
+      samp <- data[sample(nr, n), 2:3]
+    } else {
+      samp <- data[sample(nr, n, prob = data[, 4]), 2:3]
+    }
   }
 
   cells <- set_loc(samp, NW_vertex, cell_size)
@@ -53,20 +59,41 @@ set_pop <- function(spdata, NW_vertex, layer_dim, cell_size,
 
 
 # generates an initial matrix with colonized cells according to a layer and points
-initial_colonized <- function(data, base_layer, proportion = 1, set_seed = 1) {
+initial_colonized <- function(data, base_layer, proportion = 1, rule = "random",
+                              set_seed = 1) {
   l_meta <- layer_metadata(base_layer)
 
   C <- set_pop(data, l_meta$NW_vertex, l_meta$layer_dim, l_meta$cell_size,
-               proportion, set_seed)
+               proportion, rule, set_seed)
 
   return(C)
 }
 
 
 
+# sample cells from suitable areas
+suitable_cells <- function(suit_layer, data = NULL) {
+  if (is.null(data)) {
+    noz <- which((suit_layer[] > 0))
+    suit_bar <- suit_layer[noz]
+    noz <- raster::xyFromCell(suit_layer, noz)
+  } else {
+    suit_bar <- raster::extract(suit_layer, data[, 2:3])
+    tokeep <- suit_bar > 0 & !is.na(suit_bar)
+    noz <- data[tokeep, ]
+    suit_bar <- suit_bar[tokeep]
+  }
+  sp <- ifelse(is.null(data), "Species", as.character(data[1, 1]))
+
+
+  return(data.frame(species = sp, longitude = noz[, 1], latitude = noz[, 2],
+                    suitability = suit_bar))
+}
+
+
 # id cells that have been colonized in a matrix
 which_colonized <- function(colonized_matrix, suitability_matrix = NULL,
-                            proportion = 1, set_seed = 1) {
+                            proportion = 1, rule = "random", set_seed = 1) {
   if (!is.null(suitability_matrix)) {
     colonized_cells <- which(colonized_matrix >= 1 & suitability_matrix > 0,
                              arr.ind = TRUE)
@@ -77,8 +104,16 @@ which_colonized <- function(colonized_matrix, suitability_matrix = NULL,
   if (proportion < 1) {
     n <- nrow(colonized_cells)
     ns <- ceiling(n * proportion)
+
     set.seed(set_seed)
-    colonized_cells <- colonized_cells[sample(n, ns, replace = FALSE), ]
+    colonized_cells <- colonized_cells[sample(n, ns), ]
+    if (rule == "random") {
+      colonized_cells <- colonized_cells[sample(n, ns), ]
+    } else {
+      suit <- suitability_matrix[colonized_cells]
+      colonized_cells <- colonized_cells[sample(n, ns, prob = suit), ]
+    }
+
     if (ns == 1) {
       colonized_cells <- matrix(colonized_cells, ncol = 2)
       colnames(colonized_cells) <- c("row", "col")
@@ -127,8 +162,9 @@ which_accessed <- function(colonized_cells, angle_distance, layer_dim) {
 
 # runs simulation steps to update accessed areas
 dispersal_steps <- function(colonized_matrix, suitability_matrix, disperser_rules,
-                            proportion_to_disperse = 1, dispersal_kernel = "normal",
-                            kernel_spread = 1, set_seed = 1) {
+                            proportion_to_disperse = 1, sampling_rule = "random",
+                            dispersal_kernel = "normal", kernel_spread = 1,
+                            set_seed = 1) {
 
   # initial tests
   if (missing(colonized_matrix)) {
@@ -143,10 +179,14 @@ dispersal_steps <- function(colonized_matrix, suitability_matrix, disperser_rule
   if (!dispersal_kernel %in% c("normal", "log_normal")) {
     stop("Argument 'dispersal_kernel' not valid")
   }
+  if (!sampling_rule %in% c("random", "suitability")) {
+    stop("Argument 'sampling_rule' is not valid")
+  }
 
   # data preparation
   colonized_cells <- which_colonized(colonized_matrix, suitability_matrix,
-                                     proportion_to_disperse, set_seed)
+                                     proportion_to_disperse, sampling_rule,
+                                     set_seed)
   Sv <- suitability_matrix[colonized_cells]
   n_dispersers <- nd_sval(Sv, disperser_rules)
 
