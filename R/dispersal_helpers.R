@@ -80,7 +80,7 @@ suitable_cells <- function(suit_layer, data = NULL) {
   } else {
     suit_bar <- raster::extract(suit_layer, data[, 2:3])
     tokeep <- suit_bar > 0 & !is.na(suit_bar)
-    noz <- data[tokeep, ]
+    noz <- data[tokeep, 2:3]
     suit_bar <- suit_bar[tokeep]
   }
   sp <- ifelse(is.null(data), "Species", as.character(data[1, 1]))

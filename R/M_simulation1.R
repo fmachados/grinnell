@@ -344,13 +344,13 @@ M_simulation1 <- function(data, current_variables, starting_proportion = 0.5,
   # --------
   # occurrences in suitable areas, starting scenario of simulation
   occ_suit <- suit_mod[[1]][, 1:2]
-  suit_bar <- raster::extract(raster::raster(suit_name[1]), occ_suit)
-  occ_suit <- occ_suit[suit_bar > 0, ]
+  suit_lay <- raster::raster(suit_name[1])
+  oca <- data.frame(Species = sp_nam, occ_suit)
+  oca <- suitable_cells(suit_lay, data = oca)
 
   ## records
-  oca <- data.frame(Species = sp_nam, occ_suit)
   oca_nam <- paste0(output_directory, "/occ_simulation.csv")
-  write.csv(oca, oca_nam, row.names = FALSE)
+  write.csv(oca[, 1:3], oca_nam, row.names = FALSE)
 
   # --------
   # figure of niche centroid model in E space
