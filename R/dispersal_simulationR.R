@@ -279,7 +279,6 @@ scenario_wise_simulation <- function(data, suit_layers, starting_proportion = 0.
 
     s <- raster::raster(suit_layers[i])
     S <- raster::as.matrix(s)
-    Sbin <- binarize_matrix(m = S)
 
     ## loop for all replicates
     message(" - Replicate:", appendLF = FALSE)
@@ -318,20 +317,21 @@ scenario_wise_simulation <- function(data, suit_layers, starting_proportion = 0.
       message(" ", j, appendLF = FALSE)
     }
 
-    ### statistics an updates
+    ### statistics an updates and correcting with suitability
+    s[s[] > 0] <- 1
     if(return == "all") {
       Amvb <- replicate_stats(list_acc, S, s, threshold)
       Cmvb <- replicate_stats(list_col, S, s, threshold)
 
-      a_when <- a_when - Amvb[[3]]
-      c_when <- c_when - Cmvb[[3]]
+      a_when <- (a_when - Amvb[[3]]) * s
+      c_when <- (c_when - Cmvb[[3]]) * s
     } else {
       if(return == "accessed") {
         Amvb <- replicate_stats(list_acc, S, s, threshold)
-        a_when <- a_when - Amvb[[3]]
+        a_when <- (a_when - Amvb[[3]]) * s
       } else {
         Cmvb <- replicate_stats(list_col, S, s, threshold)
-        c_when <- c_when - Cmvb[[3]]
+        c_when <- (c_when - Cmvb[[3]]) * s
       }
     }
 
@@ -486,7 +486,6 @@ event_wise_simulation <- function(data, suit_layers, starting_proportion = 0.5,
 
     s <- raster::raster(suit_layers[i])
     S <- raster::as.matrix(s)
-    Sbin <- binarize_matrix(m = S)
 
     ## loop for all steps
     message(" - D. event:", appendLF = FALSE)
@@ -563,6 +562,19 @@ event_wise_simulation <- function(data, suit_layers, starting_proportion = 0.5,
       }
 
       message(" ", j, appendLF = FALSE)
+    }
+
+    # correcting with suitability
+    s[s[] > 0] <- 1
+    if(return == "all") {
+      a_when <- a_when * s
+      c_when <- c_when * s
+    } else {
+      if(return == "accessed") {
+        a_when <- a_when * s
+      } else {
+        c_when <- c_when * s
+      }
     }
 
     message(" #")
