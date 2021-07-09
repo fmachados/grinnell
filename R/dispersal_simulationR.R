@@ -323,12 +323,12 @@ scenario_wise_simulation <- function(data, suit_layers, starting_proportion = 0.
       Amvb <- replicate_stats(list_acc, S, s, threshold)
       Cmvb <- replicate_stats(list_col, S, s, threshold)
 
-      a_when <- (a_when - Amvb[[3]]) * s
+      a_when <- a_when - Amvb[[3]]
       c_when <- (c_when - Cmvb[[3]]) * s
     } else {
       if(return == "accessed") {
         Amvb <- replicate_stats(list_acc, S, s, threshold)
-        a_when <- (a_when - Amvb[[3]]) * s
+        a_when <- a_when - Amvb[[3]]
       } else {
         Cmvb <- replicate_stats(list_col, S, s, threshold)
         c_when <- (c_when - Cmvb[[3]]) * s
@@ -388,7 +388,7 @@ scenario_wise_simulation <- function(data, suit_layers, starting_proportion = 0.
 
   if(return == "all") {
     a_when[a_when[] == ns] <- 0
-    c_when[c_when[] == ns] <- 0
+    c_when[c_when[] == ns & c_when[] < 0] <- 0
 
     if (write_to_directory == TRUE) {
       aname <- paste0(output_directory, "/A_classified", form1)
@@ -414,7 +414,7 @@ scenario_wise_simulation <- function(data, suit_layers, starting_proportion = 0.
                   A_var = Amvb[[2]], A_scenarios = a_when, C = NULL,
                   C_mean = NULL, C_var = NULL, C_scenarios = NULL)
     } else {
-      c_when[c_when[] == ns] <- 0
+      c_when[c_when[] == ns & c_when[] < 0] <- 0
 
       if (write_to_directory == TRUE) {
         cname <- paste0(output_directory, "/C_scenarios", form1)
@@ -567,12 +567,9 @@ event_wise_simulation <- function(data, suit_layers, starting_proportion = 0.5,
     # correcting with suitability
     s[s[] > 0] <- 1
     if(return == "all") {
-      a_when <- a_when * s
       c_when <- c_when * s
     } else {
-      if(return == "accessed") {
-        a_when <- a_when * s
-      } else {
+      if(return == "colonized") {
         c_when <- c_when * s
       }
     }
@@ -593,7 +590,7 @@ event_wise_simulation <- function(data, suit_layers, starting_proportion = 0.5,
 
   if(return == "all") {
     a_when[a_when[] == ne] <- 0
-    c_when[c_when[] == ne] <- 0
+    c_when[c_when[] == ne & c_when[] < 0] <- 0
 
     if (write_to_directory == TRUE) {
       aname <- paste0(output_directory, "/A_classified", form1)
@@ -615,7 +612,7 @@ event_wise_simulation <- function(data, suit_layers, starting_proportion = 0.5,
 
       res <- list(Summary = summ, A_events = a_when, C_events = NULL)
     } else {
-      c_when[c_when[] == ne] <- 0
+      c_when[c_when[] == ne & c_when[] < 0] <- 0
 
       if (write_to_directory == TRUE) {
         cname <- paste0(output_directory, "/C_events", form1)
