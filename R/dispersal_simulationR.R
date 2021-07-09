@@ -151,6 +151,10 @@ dispersal_simulationR <- function(data, suit_layers, starting_proportion = 0.5,
   }
   if (!sampling_rule %in% c("random", "suitability")) {
     stop("Argument 'sampling_rule' is not valid")
+  } else {
+    if (sampling_rule == "suitability" & ncol(data) < 4) {
+      stop("A fourth column in 'data' containing suitability values is required")
+    }
   }
 
   # initial part of report
@@ -388,7 +392,7 @@ scenario_wise_simulation <- function(data, suit_layers, starting_proportion = 0.
 
   if(return == "all") {
     a_when[a_when[] == ns] <- 0
-    c_when[c_when[] == ne] <- 0
+    c_when[c_when[] == ns] <- 0
     c_when[c_when[] < 0] <- 0
 
     if (write_to_directory == TRUE) {
@@ -415,7 +419,7 @@ scenario_wise_simulation <- function(data, suit_layers, starting_proportion = 0.
                   A_var = Amvb[[2]], A_scenarios = a_when, C = NULL,
                   C_mean = NULL, C_var = NULL, C_scenarios = NULL)
     } else {
-      c_when[c_when[] == ne] <- 0
+      c_when[c_when[] == ns] <- 0
       c_when[c_when[] < 0] <- 0
 
       if (write_to_directory == TRUE) {

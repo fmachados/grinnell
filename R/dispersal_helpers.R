@@ -106,7 +106,6 @@ which_colonized <- function(colonized_matrix, suitability_matrix = NULL,
     ns <- ceiling(n * proportion)
 
     set.seed(set_seed)
-    colonized_cells <- colonized_cells[sample(n, ns), ]
     if (rule == "random") {
       colonized_cells <- colonized_cells[sample(n, ns), ]
     } else {
