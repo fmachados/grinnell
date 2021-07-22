@@ -292,8 +292,8 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
     if (!is.null(barriers)) {
       message("  Correcting suitability layer using barriers")
       barriers <- raster::raster(barriers)
-      barriers <- is.na(barriers)
-      suit_layer <- suit_layer * barriers
+      barr <- is.na(barriers)
+      suit_layer <- suit_layer * barr
     }
 
     ### write suitability layer
@@ -326,9 +326,11 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
     if (!is.null(barriers)) {
       message("  Suitability layers will be corrected using barriers")
       barriers <- raster::raster(barriers)
-      barriers <- is.na(barriers)
-      suit_layer <- suit_layer * barriers
-      suit_lgm <- suit_lgm * barriers
+      barr <- is.na(barriers)
+      suit_layer <- suit_layer * barr
+      suit_lgm <- suit_lgm * barr
+    } else {
+      barr <- barriers
     }
 
     ### write suitability layer current and lgm
@@ -354,7 +356,7 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
 
     ## interpolations and suitability layer projections
     suit_name <- interpolation(suit_mod, suitability_threshold, int_vals,
-                               barriers, variables, lgm, sp_name, lp_name,
+                               barr, variables, lgm, sp_name, lp_name,
                                out_format = "ascii", suit_fol)
     suit_name <- gsub("\"", "", suit_name)
     suit_name <- gsub("\\\\", "/", suit_name)

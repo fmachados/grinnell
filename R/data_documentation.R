@@ -104,3 +104,24 @@ NULL
 #' raster::plot(suitability)
 #' @name suitability
 NULL
+
+
+
+
+#' Example of layer representing future environmental suitability for a species
+#'
+#' A raster layer representing distinct levels of future suitability for a
+#' species in a region where simulations can be performed in examples.
+#'
+#' @format A RasterLayer with 108 rows, 84 columns, 9072 cells:
+#' \describe{
+#'   \item{suitability}{values from low = 0 to high = 1}
+#' }
+#'
+#' @examples
+#' suitability_fut <- raster::raster(system.file("extdata/suitability_fut.tif",
+#'                                               package = "grinnell"))
+#'
+#' raster::plot(suitability_fut)
+#' @name suitability_fut
+NULL

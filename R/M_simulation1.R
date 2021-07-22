@@ -8,9 +8,13 @@
 #' be used to run the simulation; columns must be: species, longitude, latitude.
 #' @param current_variables RasterStack of environmental variables representing
 #' "current" conditions (interglacial). Recommended projection WGS84 (EPSG:4326).
-#' @param starting_porportion (numeric) proportion of \code{data} located in
+#' @param starting_proportion (numeric) proportion of \code{data} located in
 #' suitable areas to be used as starting points for the simulation.
 #' Default = 0.5. All data is used if a value of 1 is defined.
+#' @param sampling_rule (character) rule to be used to sample a
+#' \code{starting_proportion} of points to run dispersal simulation steps.
+#' Options are: "random" and "suitability". Using the option "suitability"
+#' prioritizes records with higher suitability values. Default = "random".
 #' @param barriers RasterLayer representing dispersal barriers for the species.
 #' This layer must have the same extent and projection than
 #' \code{current_variables}. The only values allowed in this layer are 1 and NA;
@@ -67,7 +71,7 @@
 #' \code{output_directory}. Options are "ascii", "GTiff", and "EHdr" = bil.
 #' Default = "GTiff".
 #' @param set_seed (numeric) a seed to be used when sampling \code{data}
-#' according to \code{starting_porportion}. Default = 1.
+#' according to \code{starting_proportion}. Default = 1.
 #' @param write_all_scenarios (logical) whether or not to write results
 #' for all scenarios. The default, FALSE, writes only the final results.
 #' @param output_directory (character) name of the output directory to be created
@@ -85,10 +89,11 @@
 #' replicates
 #' - a RasterLayer representing variance among values of accessibility frequency
 #' of all replicates
+#' - if defined, the RasterLayer used in \code{barriers}, else NULL
 #'
 #' The complete set of results derived from data preparation and the simulation
 #' is written in \code{output_directory}. These results include the ones
-#' mentioned above, plus:
+#' mentioned above (except barriers), plus:
 #' - a folder containing results from the PCA performed
 #' - a folder containing results from the preparation of suitability layer(s)
 #' - other raster layers representing statistics of accessibility:
@@ -105,9 +110,9 @@
 #' @importFrom grDevices dev.off png terrain.colors
 #'
 #' @usage
-#' M_simulation1(data, current_variables, starting_porportion = 0.5,
-#'               barriers = NULL, scale = TRUE, center = TRUE,
-#'               project = FALSE, projection_variables = NULL,
+#' M_simulation1(data, current_variables, starting_proportion = 0.5,
+#'               sampling_rule = "random", barriers = NULL, scale = TRUE,
+#'               center = TRUE, project = FALSE, projection_variables = NULL,
 #'               dispersal_kernel = "normal", kernel_spread = 1,
 #'               max_dispersers = 4, suitability_threshold = 5,
 #'               replicates = 10, dispersal_events = 25,
@@ -182,9 +187,10 @@
 #'                       output_directory = file.path(tempdir(), "eg_Msim1_pb"))
 #' }
 
-M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
-                          barriers = NULL, scale = TRUE, center = TRUE,
-                          project = FALSE, projection_variables = NULL,
+M_simulation1 <- function(data, current_variables, starting_proportion = 0.5,
+                          sampling_rule = "random", barriers = NULL,
+                          scale = TRUE, center = TRUE, project = FALSE,
+                          projection_variables = NULL,
                           dispersal_kernel = "normal", kernel_spread = 1,
                           max_dispersers = 4, suitability_threshold = 5,
                           replicates = 10, dispersal_events = 25,
@@ -204,6 +210,9 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
   }
   if (missing(output_directory)) {
     stop("Argument 'output_directory' must be defined")
+  }
+  if (!sampling_rule %in% c("random", "suitability")) {
+    stop("Argument 'sampling_rule' is not valid")
   }
 
   n <- raster::nlayers(current_variables)
@@ -262,9 +271,9 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
 
     ## barrier consideration
     if (!is.null(barriers)) {
-      message("\nSuitability layers will be corrected using barriers")
-      barriers <- is.na(barriers)
-      suit_layer <- suit_layer * barriers
+      message("\nSuitability layer will be corrected using barriers")
+      barr <- is.na(barriers)
+      suit_layer <- suit_layer * barr
     }
 
     ## write suitability layer
@@ -298,9 +307,11 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
     ## barrier consideration
     if (!is.null(barriers)) {
       message("\nSuitability layers will be corrected using barriers")
-      barriers <- is.na(barriers)
-      suit_layer <- suit_layer * barriers
-      suit_lgm <- suit_lgm * barriers
+      barr <- is.na(barriers)
+      suit_layer <- suit_layer * barr
+      suit_lgm <- suit_lgm * barr
+    } else {
+      barr <- barriers
     }
 
     ## write suitability layer current and lgm
@@ -325,7 +336,7 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
 
     ## interpolations and suitability layer projections
     suit_name <- interpolation(suit_mod, suitability_threshold, int_vals,
-                               barriers, current_variables,
+                               barr, current_variables,
                                projection_variables, sp_name, lp_name,
                                out_format, suit_fol)
   }
@@ -333,13 +344,13 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
   # --------
   # occurrences in suitable areas, starting scenario of simulation
   occ_suit <- suit_mod[[1]][, 1:2]
-  suit_bar <- raster::extract(raster::raster(suit_name[1]), occ_suit)
-  occ_suit <- occ_suit[suit_bar > 0, ]
+  suit_lay <- raster::raster(suit_name[1])
+  oca <- data.frame(Species = sp_nam, occ_suit)
+  oca <- suitable_cells(suit_lay, data = oca)
 
   ## records
-  oca <- data.frame(Species = sp_nam, occ_suit)
   oca_nam <- paste0(output_directory, "/occ_simulation.csv")
-  write.csv(oca, oca_nam, row.names = FALSE)
+  write.csv(oca[, 1:3], oca_nam, row.names = FALSE)
 
   # --------
   # figure of niche centroid model in E space
@@ -353,7 +364,9 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
   ## script
   message("")
   res <- dispersal_simulationR(data = oca, suit_layers = suit_name,
-                               starting_porportion = starting_porportion,
+                               starting_proportion = starting_proportion,
+                               proportion_to_disperse = 1,
+                               sampling_rule = sampling_rule,
                                dispersal_kernel = dispersal_kernel,
                                kernel_spread = kernel_spread,
                                max_dispersers = max_dispersers,
@@ -383,5 +396,5 @@ M_simulation1 <- function(data, current_variables, starting_porportion = 0.5,
   # return
   return(list(Simulation_occurrences = oca, Simulation_scenarios = suit_name,
               Summary = res$Summary, A_raster = m, A_polygon = m_poly,
-              A_mean = res$A_mean, A_var = res$A_var))
+              A_mean = res$A_mean, A_var = res$A_var, Barriers = barriers))
 }
