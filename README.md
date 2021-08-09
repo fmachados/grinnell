@@ -35,10 +35,10 @@ system("python3 -m pip install numpy")
 ```
 
 ## Installation
-grinnell needs a series of packages for GIS & ENM, as well as Rtools. Here you can check if you have them and install them:
+grinnell needs a series of packages for GIS & ENM. Here you can check if you have them and install them:
 ```
 # Dependencies
-packages <- c("devtools", "raster", "rgdal", "rgeos", "scales", "installr")
+packages <- c("devtools", "raster", "rgdal", "rgeos", "scales")
 req_pack <- packages[!(packages %in% installed.packages()[, "Package"])]
 
 if (length(req_pack) > 0) {install.packages(req_pack, dependencies = TRUE)}
@@ -52,8 +52,11 @@ if (length(req_packg) > 0) {
     devtools::install_github(paste0("marlonecobos/", x))
   })
 }
-
-# If you don't have Rtools, do this:
+```
+Windows users might need [Rtools](http://cran.r-project.org/bin/windows/Rtools/). Mac users might need to install packages like rgeos and rgdal manually or update XCode Command Line Tools.
+```
+# Windows users can do this to get Rtools:
+install.packages("installr")
 library(installr)
 install.Rtools()
 ```
