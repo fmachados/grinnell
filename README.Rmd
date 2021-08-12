@@ -1,45 +1,30 @@
-grinnell: Dispersal Simulations Based on Ecological Niches
-================
-Fernando Machado-Stredel, Marlon E. Cobos, and A. Townsend Peterson
+---
+title: "grinnell: Dispersal Simulations Based on Ecological Niches"
+author: "Fernando Machado-Stredel, Marlon E. Cobos, and A. Townsend Peterson"
+output:
+  github_document:
+    toc: yes
+    toc_depth: 3
+---
 
-  - [Project description](#project-description)
-      - [Status of the project](#status-of-the-project)
-  - [Installation](#installation)
-      - [Python requirements](#python-requirements)
-      - [R dependencies](#r-dependencies)
-  - [M simulation example](#m-simulation-example)
-  - [M simulation using your data](#m-simulation-using-your-data)
-
+```{r knitr_init, echo=FALSE, cache=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, collapse = TRUE, comment = "#>")
+```
 ## Project description
+**grinnell** is an R package to simulate dispersal and accessibility based on niche estimations. One of the main functionalities is the simulation of species accessible areas (M), which can be used as calibration areas in Ecological Niche Models (ENM) and Species Distribution Models (SDM).
 
-**grinnell** is an R package to simulate dispersal and accessibility
-based on niche estimations. One of the main functionalities is the
-simulation of species accessible areas (M), which can be used as
-calibration areas in Ecological Niche Models (ENM) and Species
-Distribution Models (SDM).
-
-To simulate M, grinnell uses the same inputs needed by several ENM and
-SDM: clean occurrences of the study species and a set of climatic layers
-(rasters).
+To simulate M, grinnell uses the same inputs needed by several ENM and SDM: clean occurrences of the study species and a set of climatic layers (rasters).
 
 ### Status of the project
-
-Currently, input and output processing are done in R, while the
-simulation is run in Python. We are testing new functions to migrate to
-R and submit the package to CRAN.
+Currently, input and output processing are done in R, while the simulation is run in Python. We are testing new functions to migrate to R and submit the package to CRAN.
 
 ## Installation
-
 ### Python requirements
-
-Before installing the R dependencies, please download and install
-[Python](https://www.python.org/downloads/) 3.6 or higher in your
-computer. If you have Anaconda already installed in your system, you can
-skip this section.
+Before installing the R dependencies, please download and install [Python](https://www.python.org/downloads/) 3.6 or higher in your computer. If you have Anaconda already installed in your system, you can skip this section.
 
 You can check your current Python version in R with:
 
-``` r
+```{r py.version, eval=FALSE}
 # Windows
 system("python --version")
 
@@ -49,7 +34,7 @@ system("python3 --version")
 
 In each new R session, before using **grinnell**, call Python using:
 
-``` r
+```{r py.call, eval=FALSE}
 # Set your Python path
 py.path <- "YOUR-PATH/TO/PYTHON" # e.g., "C:/Python/Python39"
 
@@ -58,10 +43,9 @@ Sys.setenv(PATH = paste(py.path, Sys.getenv()["PATH"], sep = ";"))
 # You can verify this, using the system() function as before
 ```
 
-If you don’t have Anaconda, the **numpy** library needs to be added
-using the pip module:
+If you don't have Anaconda, the **numpy** library needs to be added using the pip module:
 
-``` r
+```{r numpy, eval=FALSE}
 # Windows
 system("python -m pip install numpy")
 
@@ -70,11 +54,9 @@ system("python3 -m pip install numpy")
 ```
 
 ### R dependencies
+**grinnell** needs a series of packages for GIS & ENM. Here you can check if you have them and/or install them:
 
-**grinnell** needs a series of packages for GIS & ENM. Here you can
-check if you have them and/or install them:
-
-``` r
+```{r dependencies, eval=FALSE}
 # Dependencies
 packages <- c("devtools", "raster", "rgdal", "rgeos", "scales")
 req_pack <- packages[!(packages %in% installed.packages()[, "Package"])]
@@ -92,12 +74,9 @@ if (length(req_packg) > 0) {
 }
 ```
 
-Windows users might need
-[Rtools](http://cran.r-project.org/bin/windows/Rtools/). Mac users might
-need to install packages like **rgeos** and **rgdal** manually or update
-XCode Command Line Tools.
+Windows users might need [Rtools](http://cran.r-project.org/bin/windows/Rtools/). Mac users might need to install packages like **rgeos** and **rgdal** manually or update XCode Command Line Tools.
 
-``` r
+```{r rtools, eval=FALSE}
 # Windows users can do this to get Rtools:
 install.packages("installr")
 library(installr)
@@ -106,7 +85,7 @@ install.Rtools()
 
 Install **grinnell** and call the libraries:
 
-``` r
+```{r install, eval=FALSE}
 devtools::install_github("fmachados/grinnell")
 
 # all libraries should be TRUE:
@@ -114,12 +93,9 @@ sapply(c(packages, packagesg, "grinnell"), require, character.only = TRUE)
 ```
 
 ## M simulation example
+Here is one of the examples from the M_simulation function's help section. This creates some temporary directories and uses data from the package:
 
-Here is one of the examples from the M\_simulation function’s help
-section. This creates some temporary directories and uses data from the
-package:
-
-``` r
+```{r sim.ex1, eval=FALSE}
 tempdir <- file.path(tempdir(), "msim")
 dir.create(tempdir)
 
@@ -143,39 +119,30 @@ odir1 <- paste0(tempdir, "/eg_msim1")
 
 You can plot the records over one of the variables using:
 
-``` r
+```{r occ.plot, eval=FALSE}
 plot(raster(paste0(tempdir, "/variables/var_1.asc")), legend.args = list(text = "Mean Temperature",
 side = 4, line = 2.5))
 points(records[,2:3])
 ```
+```{r, echo = FALSE}
+knitr::include_graphics("img/occplot.png")
+```
 
-<img src="img/occplot.png" width="2400" />
+The simulation of M will use a species occurrences data frame and a folder with current climatic variables in raster format (.asc). The following example runs 3 replicates of the simulation using a normal dispersal kernel with SD = 1 pixel during 5 dispersal events. The maximum number of dispersers per cell during each dispersal event is 2, which varies according to the suitability of the cell.
 
-The simulation of M will use a species occurrences data frame and a
-folder with current climatic variables in raster format (.asc). The
-following example runs 3 replicates of the simulation using a normal
-dispersal kernel with SD = 1 pixel during 5 dispersal events. The
-maximum number of dispersers per cell during each dispersal event is 2,
-which varies according to the suitability of the cell.
-
-``` r
+```{r sim, eval=FALSE}
 M_simulation(data = occ, current_variables = cvariables,
              dispersal_kernel = "normal", kernel_spread = 1,
              max_dispersers = 2, dispersal_events = 5, replicates = 3,
              output_directory = odir1)
 ```
 
-The output folder (“eg\_msim1”) includes a PCA directory, a suitability
-directory with a fundamental niche ellipsoid, and the accessible area
-(M) in shape format, among other outputs. You can check the report text
-file to see the simulation time and parameters used.
+The output folder ("eg_msim1") includes a PCA directory, a suitability directory with a fundamental niche ellipsoid, and the accessible area (M) in shape format, among other outputs. You can check the report text file to see the simulation time and parameters used.
 
 ## M simulation using your data
+Before using **grinnell** remember to call Python (if you are in a new R session):
 
-Before using **grinnell** remember to call Python (if you are in a new R
-session):
-
-``` r
+```{r py.call.new, eval=FALSE}
 # Set your Python path
 py.path <- "YOUR-PATH/TO/PYTHON" # e.g., "C:/Python/Python39"
 
@@ -190,13 +157,9 @@ system("python --version")
 system("python3 --version")
 ```
 
-To run the simulation in current climate layers with your own occurrence
-data, you can use something similar to the code below. Simulation time
-increases by layer extent (mask your rasters to a geographic region of
-interest or G), layer resolution, number of occurrences, number of
-replicates and number of dispersal events.
+To run the simulation in current climate layers with your own occurrence data, you can use something similar to the code below. Simulation time increases by layer extent (mask your rasters to a geographic region of interest or G), layer resolution, number of occurrences, number of replicates and number of dispersal events.
 
-``` r
+```{r sim.user, eval=FALSE}
 # Set your directory
 setwd("YOUR/PATH")
 
