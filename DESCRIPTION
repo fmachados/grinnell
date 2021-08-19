@@ -26,7 +26,8 @@ Description:
     Peterson et al. (1999) <doi:10.1126/science.285.5431.1265>,
     Peterson et al. (2011) <https://www.degruyter.com/princetonup/view/title/506966>,
     Soberon and Peterson (2005) <doi:10.17161/bi.v2i0.4>,
-    Soberon and Peterson (2020) <doi:10.1007/s12080-019-0432-5>.
+    Soberon and Peterson (2020) <doi:10.1007/s12080-019-0432-5>,
+    Machado-Stredel et al. (2021) <doi:10.21425/F5FBG48814>.
 URL: https://github.com/fmachados/grinnell
 BugReports: https://github.com/fmachados/grinnell/issues
 Imports:
