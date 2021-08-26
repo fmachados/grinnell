@@ -128,7 +128,7 @@ side = 4, line = 2.5))
 points(records[,2:3])
 ```
 
-<img src="img/occplot.png" width="2400" />
+<img src="README_files/occplot.png" width="75%" style="display: block; margin: auto;" />
 
 The simulation of M will use a species occurrences data frame and a
 folder with current climatic variables in raster format (.asc). The
@@ -147,7 +147,11 @@ M_simulation(data = occ, current_variables = cvariables,
 The output folder (“eg\_msim1”) includes a PCA directory, a suitability
 directory with a fundamental niche ellipsoid, and the accessible area
 (M) in shape format, among other outputs. You can check the report text
-file to see the simulation time and parameters used.
+file to see the simulation time and parameters used. A png image will
+show how the accessible area (blue outline) will look over the current
+suitability layer:
+
+<img src="README_files/Accessible_area_M.png" width="50%" style="display: block; margin: auto;" />
 
 ### Using your own data
 

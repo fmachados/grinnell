@@ -108,8 +108,9 @@ plot(raster(paste0(tempdir, "/variables/var_1.asc")), legend.args = list(text = 
 side = 4, line = 2.5))
 points(records[,2:3])
 ```
-```{r, echo = FALSE}
-knitr::include_graphics("img/occplot.png")
+
+```{r, out.width="75%", fig.align="center", echo = FALSE}
+knitr::include_graphics("README_files/occplot.png")
 ```
 
 The simulation of M will use a species occurrences data frame and a folder with current climatic variables in raster format (.asc). The following example runs 3 replicates of the simulation using a normal dispersal kernel with SD = 1 pixel during 5 dispersal events. The maximum number of dispersers per cell during each dispersal event is 2, which varies according to the suitability of the cell.
@@ -121,7 +122,11 @@ M_simulation(data = occ, current_variables = cvariables,
              output_directory = odir1)
 ```
 
-The output folder ("eg_msim1") includes a PCA directory, a suitability directory with a fundamental niche ellipsoid, and the accessible area (M) in shape format, among other outputs. You can check the report text file to see the simulation time and parameters used.
+The output folder ("eg_msim1") includes a PCA directory, a suitability directory with a fundamental niche ellipsoid, and the accessible area (M) in shape format, among other outputs. You can check the report text file to see the simulation time and parameters used. A png image will show how the accessible area (blue outline) will look over the current suitability layer:
+
+```{r, out.width="50%", fig.align="center", echo = FALSE}
+knitr::include_graphics("README_files/Accessible_area_M.png")
+```
 
 ### Using your own data
 Before using **grinnell** remember to call Python (if you are in a new R session):
