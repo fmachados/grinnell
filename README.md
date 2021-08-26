@@ -5,10 +5,12 @@ Fernando Machado-Stredel, Marlon E. Cobos, and A. Townsend Peterson
   - [Project description](#project-description)
       - [Status of the project](#status-of-the-project)
   - [Installation](#installation)
-      - [Python requirements](#python-requirements)
-      - [R dependencies](#r-dependencies)
-  - [M simulation example](#m-simulation-example)
-  - [M simulation using your data](#m-simulation-using-your-data)
+  - [Python requirements](#python-requirements)
+  - [M simulation](#m-simulation)
+      - [Using example data](#using-example-data)
+      - [Using your own data](#using-your-own-data)
+
+<hr>
 
 ## Project description
 
@@ -25,17 +27,34 @@ SDM: clean occurrences of the study species and a set of climatic layers
 ### Status of the project
 
 Currently, input and output processing are done in R, while the
-simulation is run in Python. We are testing new functions to migrate to
-R and submit the package to CRAN.
+simulation runs in Python. We are testing new functions to migrate to R
+and submit the package to CRAN.
+
+<hr>
 
 ## Installation
 
-### Python requirements
+To install and call **grinnell** use:
 
-Before installing the R dependencies, please download and install
-[Python](https://www.python.org/downloads/) 3.6 or higher in your
-computer. If you have Anaconda already installed in your system, you can
-skip this section.
+``` r
+if (!require("remotes")) {
+  install.packages("remotes")
+}
+
+remotes::install_github("fmachados/grinnell")
+library(grinnell)
+```
+
+Mac users might need to install packages like **rgeos** and **rgdal**
+manually or update XCode Command Line Tools.
+
+<hr>
+
+## Python requirements
+
+Please download and install [Python](https://www.python.org/downloads/)
+3.6 or higher in your computer. If you have Anaconda already installed
+in your system, you can skip this section.
 
 You can check your current Python version in R with:
 
@@ -43,7 +62,7 @@ You can check your current Python version in R with:
 # Windows
 system("python --version")
 
-# Mac
+# Mac & Linux
 system("python3 --version")
 ```
 
@@ -65,55 +84,15 @@ using the pip module:
 # Windows
 system("python -m pip install numpy")
 
-# Mac
+# Mac & Linux
 system("python3 -m pip install numpy")
 ```
 
-### R dependencies
+<hr>
 
-**grinnell** needs a series of packages for GIS & ENM. Here you can
-check if you have them and/or install them:
+## M simulation
 
-``` r
-# Dependencies
-packages <- c("devtools", "raster", "rgdal", "rgeos", "scales")
-req_pack <- packages[!(packages %in% installed.packages()[, "Package"])]
-
-if (length(req_pack) > 0) {install.packages(req_pack, dependencies = TRUE)}
-
-# ENM packages
-packagesg <- c("kuenm", "ellipsenm") 
-req_packg <- packagesg[!(packagesg %in% installed.packages()[, "Package"])]
-
-if (length(req_packg) > 0) {
-  p <- lapply(req_packg, function(x) {
-    devtools::install_github(paste0("marlonecobos/", x))
-  })
-}
-```
-
-Windows users might need
-[Rtools](http://cran.r-project.org/bin/windows/Rtools/). Mac users might
-need to install packages like **rgeos** and **rgdal** manually or update
-XCode Command Line Tools.
-
-``` r
-# Windows users can do this to get Rtools:
-install.packages("installr")
-library(installr)
-install.Rtools()
-```
-
-Install **grinnell** and call the libraries:
-
-``` r
-devtools::install_github("fmachados/grinnell")
-
-# all libraries should be TRUE:
-sapply(c(packages, packagesg, "grinnell"), require, character.only = TRUE)
-```
-
-## M simulation example
+### Using example data
 
 Here is one of the examples from the M\_simulation function’s help
 section. This creates some temporary directories and uses data from the
@@ -170,7 +149,7 @@ directory with a fundamental niche ellipsoid, and the accessible area
 (M) in shape format, among other outputs. You can check the report text
 file to see the simulation time and parameters used.
 
-## M simulation using your data
+### Using your own data
 
 Before using **grinnell** remember to call Python (if you are in a new R
 session):
