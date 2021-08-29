@@ -2,13 +2,13 @@ grinnell: Dispersal Simulations Based on Ecological Niches
 ================
 Fernando Machado-Stredel, Marlon E. Cobos, and A. Townsend Peterson
 
-  - [Project description](#project-description)
-      - [Status of the project](#status-of-the-project)
-  - [Installation](#installation)
-  - [Python requirements](#python-requirements)
-  - [M simulation](#m-simulation)
-      - [Using example data](#using-example-data)
-      - [Using your own data](#using-your-own-data)
+-   [Project description](#project-description)
+    -   [Status of the project](#status-of-the-project)
+-   [Installation](#installation)
+-   [Python requirements](#python-requirements)
+-   [M simulation](#m-simulation)
+    -   [Using example data](#using-example-data)
+    -   [Using your own data](#using-your-own-data)
 
 <hr>
 
@@ -66,15 +66,23 @@ system("python --version")
 system("python3 --version")
 ```
 
-In each new R session, before using **grinnell**, call Python using:
+In each new R session, before using **grinnell**, you should call
+Python:
 
 ``` r
+# You can find your Python path using:
+# Windows
+system("py -0p")
+
+# Mac & Linux
+Sys.which("python3")
+
 # Set your Python path
 py.path <- "YOUR-PATH/TO/PYTHON" # e.g., "C:/Python/Python39"
 
 # Call Python
 Sys.setenv(PATH = paste(py.path, Sys.getenv()["PATH"], sep = ";"))
-# You can verify this, using the system() function as before
+# You can verify that the correct version is called using the system() function as in the previous step
 ```
 
 If you don’t have Anaconda, the **numpy** library needs to be added

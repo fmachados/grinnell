@@ -52,15 +52,22 @@ system("python --version")
 system("python3 --version")
 ```
 
-In each new R session, before using **grinnell**, call Python using:
+In each new R session, before using **grinnell**, you should call Python:
 
 ```{r py.call, eval=FALSE}
+# You can find your Python path using:
+# Windows
+system("py -0p")
+
+# Mac & Linux
+Sys.which("python3")
+
 # Set your Python path
 py.path <- "YOUR-PATH/TO/PYTHON" # e.g., "C:/Python/Python39"
 
 # Call Python
 Sys.setenv(PATH = paste(py.path, Sys.getenv()["PATH"], sep = ";"))
-# You can verify this, using the system() function as before
+# You can verify that the correct version is called using the system() function as in the previous step
 ```
 
 If you don't have Anaconda, the **numpy** library needs to be added using the pip module:
