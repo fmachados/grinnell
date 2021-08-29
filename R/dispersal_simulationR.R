@@ -32,7 +32,8 @@
 #' each colonized pixel. Depending on suitability this number will automatically
 #' decrease in areas with low suitability values. Default = 4.
 #' @param dispersal_events (numeric) number of dispersal events to happen per
-#' scenario. Default = 25.
+#' scenario. A vector of multiple values could be used to define different
+#' dispersal events for distinct scenarios. See details; default = 25.
 #' @param replicates (numeric) number of times to repeat the simulation
 #' per scenario or dispersal event, depending on \code{results_by}. Default = 10.
 #' @param threshold (numeric) percentage to be considered when excluding
@@ -117,6 +118,15 @@
 #' or events per scenario (depending on \code{results_by}) will be written in
 #' \code{output_directory}.
 #'
+#' @details
+#' Defining a vector of multiple values in \code{dispersal_events} could be
+#' useful when distinct scenarios represent different periods of time, or if
+#' a reduced number of events need to be simulated in the last scenario.
+#' If a vector of values is defined in \code{dispersal_events}, the length of
+#' this vector must match the length of \code{suit_layers}, otherwise,
+#' the first element in \code{dispersal_events} will be used and a
+#' message will be printed.
+#'
 #' @examples
 #' # data
 #' data("records", package = "grinnell")
@@ -156,6 +166,16 @@ dispersal_simulationR <- function(data, suit_layers, starting_proportion = 0.5,
       stop("A fourth column in 'data' containing suitability values is required")
     }
   }
+  if (length(dispersal_events) == 1) {
+    dispersal_events <- rep(dispersal_events, length(suit_layers))
+  } else {
+    if (length(dispersal_events) != length(suit_layers)) {
+      message("Length of 'dispersal_events' does not match number of scenarios",
+              " using first value: ", dispersal_events[1])
+      dispersal_events <- rep(dispersal_events[1], length(suit_layers))
+    }
+  }
+
 
   # initial part of report
   if (write_to_directory == TRUE) {
@@ -301,7 +321,7 @@ scenario_wise_simulation <- function(data, suit_layers, starting_proportion = 0.
       }
 
       ### simulation steps
-      for (k in 1:dispersal_events) {
+      for (k in 1:dispersal_events[i]) {
         #### running steps according to dispersers
         set_seed1 <- set_seed + ((k - 1) * 10)
         A_now <- dispersal_steps(colonized_matrix = C, suitability_matrix = S,
@@ -469,7 +489,7 @@ event_wise_simulation <- function(data, suit_layers, starting_proportion = 0.5,
   d_rules <- disperser_rules(cur_layer, max_dispersers)
 
   # layers to store when things happen
-  ne <- (dispersal_events * length(suit_layers)) + 1
+  ne <- sum(dispersal_events) + 1
   cur_layer[] <- ne
 
   if(return == "all") {
@@ -496,7 +516,7 @@ event_wise_simulation <- function(data, suit_layers, starting_proportion = 0.5,
     ## loop for all steps
     message(" - D. event:", appendLF = FALSE)
 
-    for (j in 1:dispersal_events) {
+    for (j in 1:dispersal_events[i]) {
 
       for (k in 1:replicates) {
         ### preparing C matrix

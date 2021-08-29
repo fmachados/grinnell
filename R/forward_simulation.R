@@ -40,7 +40,8 @@
 #' each colonized pixel. Depending on suitability this number will automatically
 #' decrease in areas with low suitability values. Default = 4.
 #' @param dispersal_events (numeric) number of dispersal events to happen per
-#' scenario. Default = 25.
+#' scenario. A vector of multiple values could be used to define different
+#' dispersal events for distinct scenarios. See details; default = 25.
 #' @param replicates (numeric) number of times to repeat the simulation
 #' per dispersal event, depending on \code{results_by}. Default = 10.
 #' @param threshold (numeric) percentage to be considered when excluding
@@ -95,6 +96,15 @@
 #' 10 dispersal events are defined and multiple scenarios exist in
 #' \code{suit_layers}, the first dispersal event in the second scenario will be
 #' number 11.
+#'
+#' @details
+#' Defining a vector of multiple values in \code{dispersal_events} could be
+#' useful when distinct scenarios represent different periods of time, or if
+#' a reduced number of events need to be simulated in the last scenario.
+#' If a vector of values is defined in \code{dispersal_events}, the length of
+#' this vector must match the length of \code{suit_forward} + 1, otherwise,
+#' the first element in \code{dispersal_events} will be used and a warning
+#' message will be printed.
 #'
 #' @examples
 #' # data
@@ -154,6 +164,23 @@ forward_simulation <- function(suit_layer, data = NULL, suit_forward = NULL,
     suit_lay <- raster::raster(suit_layer)
     if (suit_lay@extent != barriers@extent) {
       stop("'barriers' and 'suit_layer' must have the same extent")
+    }
+  }
+  if (length(dispersal_events) == 1) {
+    if (!is.null(suit_forward)) {
+      dispersal_events <- rep(dispersal_events, (length(suit_forward) + 1))
+    }
+  } else {
+    if (!is.null(suit_forward)) {
+      if (length(dispersal_events) != (length(suit_forward) + 1)) {
+        message("Length of 'dispersal_events' does not match number of scenarios",
+                " using first value: ", dispersal_events[1])
+        dispersal_events <- rep(dispersal_events[1], (length(suit_forward) + 1))
+      }
+    } else {
+      message("Length of 'dispersal_events' does not match number of scenarios",
+              " using first value: ", dispersal_events[1])
+      dispersal_events <- dispersal_events[1]
     }
   }
 

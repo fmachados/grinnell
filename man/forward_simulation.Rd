@@ -60,7 +60,8 @@ each colonized pixel. Depending on suitability this number will automatically
 decrease in areas with low suitability values. Default = 4.}
 
 \item{dispersal_events}{(numeric) number of dispersal events to happen per
-scenario. Default = 25.}
+scenario. A vector of multiple values could be used to define different
+dispersal events for distinct scenarios. See details; default = 25.}
 
 \item{replicates}{(numeric) number of times to repeat the simulation
 per dispersal event, depending on \code{results_by}. Default = 10.}
@@ -115,6 +116,15 @@ number 11.
 Simulation of species dispersal to identify areas
 that could be accessed and colonized based on environmental
 suitability and user-defined dispersal parameters.
+}
+\details{
+Defining a vector of multiple values in \code{dispersal_events} could be
+useful when distinct scenarios represent different periods of time, or if
+a reduced number of events need to be simulated in the last scenario.
+If a vector of values is defined in \code{dispersal_events}, the length of
+this vector must match the length of \code{suit_forward} + 1, otherwise,
+the first element in \code{dispersal_events} will be used and a warning
+message will be printed.
 }
 \examples{
 # data

@@ -1,6 +1,6 @@
 #' Simulation of species accessible areas (M) R version
 #'
-#' @description M_simulation1 generates an area that has been potentially
+#' @description M_simulationR generates an area that has been potentially
 #' accessible to a species based on simulations of dispersal events determined
 #' by environmental suitability and user-defined parameters.
 #'
@@ -110,7 +110,7 @@
 #' @importFrom grDevices dev.off png terrain.colors
 #'
 #' @usage
-#' M_simulation1(data, current_variables, starting_proportion = 0.5,
+#' M_simulationR(data, current_variables, starting_proportion = 0.5,
 #'               sampling_rule = "random", barriers = NULL, scale = TRUE,
 #'               center = TRUE, project = FALSE, projection_variables = NULL,
 #'               dispersal_kernel = "normal", kernel_spread = 1,
@@ -153,7 +153,7 @@
 #' variables <- raster::stack(system.file("extdata/variables.tif",
 #'                                        package = "grinnell"))
 #' # example in current scenario
-#' m <- M_simulation1(data = records, current_variables = variables,
+#' m <- M_simulationR(data = records, current_variables = variables,
 #'                    max_dispersers = 2, replicates = 3, dispersal_events = 5,
 #'                    output_directory = file.path(tempdir(), "eg_Msim1"))
 #'
@@ -163,7 +163,7 @@
 #'                                            package = "grinnell"))
 #' names(variables_lgm) <- names(variables)
 #'
-#' m_p <- M_simulation1(data = records, current_variables = variables,
+#' m_p <- M_simulationR(data = records, current_variables = variables,
 #'                      project = TRUE, projection_variables = variables_lgm,
 #'                      kernel_spread = 2, max_dispersers = 2,
 #'                      replicates = 3, dispersal_events = 25,
@@ -176,7 +176,7 @@
 #' barrier <- raster::raster(system.file("extdata/barrier.tif",
 #'                                       package = "grinnell"))
 #'
-#' m_pb <- M_simulation1(data = records, current_variables = variables,
+#' m_pb <- M_simulationR(data = records, current_variables = variables,
 #'                       barriers = barrier, project = TRUE,
 #'                       projection_variables = variables_lgm,
 #'                       kernel_spread = 2, max_dispersers = 2,
@@ -187,7 +187,7 @@
 #'                       output_directory = file.path(tempdir(), "eg_Msim1_pb"))
 #' }
 
-M_simulation1 <- function(data, current_variables, starting_proportion = 0.5,
+M_simulationR <- function(data, current_variables, starting_proportion = 0.5,
                           sampling_rule = "random", barriers = NULL,
                           scale = TRUE, center = TRUE, project = FALSE,
                           projection_variables = NULL,
