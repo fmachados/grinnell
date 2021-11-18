@@ -192,9 +192,9 @@ def newS(C, S):
     return C")
 
   cat("\n\nstart = time.time()
-
+\nlist_rep = [[] for r in range(rep)]
+\nlist_rep_C = [[] for r in range(rep)]\n
 for s in range(len(list_asc)):
-    S = [[[0]*Ncol for i in range(Nrow)] for k in range(len(list_asc))]
     S_raw = numpy.loadtxt(list_asc[s], skiprows = 6)
     S_data = []
     for row in range(Nrow):
@@ -202,7 +202,6 @@ for s in range(len(list_asc)):
             S_data.append(S_raw[row][col])
     S =  [S_data[Ncol * i : Ncol * (i + 1)] for i in range(Nrow)]
 
-    list_rep = [[] for r in range(rep)]
     mean_A = [[0]*Ncol for i in range(Nrow)]
     var_A = [[0]*Ncol for i in range(Nrow)]
     bin_A = [[0]*Ncol for i in range(Nrow)]
@@ -216,7 +215,8 @@ for s in range(len(list_asc)):
                     if (C[row][col] == 1):
                         A[row][col] = 1
         else:
-            C = newS(C, S)
+            A = list_rep[r]
+            C = newS(list_rep_C[r], S)
 
         for t in range(steps):
             A_now = [[0]*Ncol for i in range(Nrow)]
@@ -258,6 +258,7 @@ for s in range(len(list_asc)):
 
             A = updateA(A, A_now)
             C = updateC(C, A_now, S)
+        list_rep_C[r] = copy.deepcopy(C)
         list_rep[r] = copy.deepcopy(A)
 
         for row in range(Nrow):
