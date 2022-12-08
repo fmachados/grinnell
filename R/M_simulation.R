@@ -216,16 +216,21 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
   ncl <- gregexpr("Python 3.\\d", py)
   ncla <- regmatches(py, ncl)
   pyver <- unlist(ncla)
+  svrs <- strsplit(pyver, " ")[[1]][2]
 
   if (length(pyver) == 0) {
     stop("Python version >= 3.6 is needed to run simulations.\n",
          "  Installing Anaconda will install Python and all libraries needed:\n",
          "  https://www.anaconda.com/products/individual#Downloads")
   }
+  
+  if (nchar(svrs) == 3) {
+  svrs <- sub("(.{2})(.*)", "\\10\\2", svrs)
+  } 
 
-  version <- as.numeric(strsplit(pyver, " ")[[1]][2])
+  version <- as.numeric(svrs)
 
-  if (version < 3.6) {
+  if (version < 3.06) {
     stop("Python version >= 3.6 is needed to run simulations.\n",
          "  Installing Anaconda will install Python and all libraries needed:\n",
          "  https://www.anaconda.com/products/individual#Downloads")
