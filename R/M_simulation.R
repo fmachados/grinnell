@@ -213,7 +213,7 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
   } else {
     py <- system("python", intern = TRUE)
   }
-  ncl <- gregexpr("Python 3.\\d", py)
+  ncl <- gregexpr("Python 3.\\d+", py)
   ncla <- regmatches(py, ncl)
   pyver <- unlist(ncla)
   svrs <- strsplit(pyver, " ")[[1]][2]
