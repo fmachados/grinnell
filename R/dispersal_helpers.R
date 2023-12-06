@@ -73,21 +73,23 @@ initial_colonized <- function(data, base_layer, proportion = 1, rule = "random",
 
 # sample cells from suitable areas
 suitable_cells <- function(suit_layer, data = NULL) {
-  if (is.null(data)) {
-    noz <- which((suit_layer[] > 0))
-    suit_bar <- suit_layer[noz]
-    noz <- raster::xyFromCell(suit_layer, noz)
-  } else {
-    suit_bar <- raster::extract(suit_layer, data[, 2:3])
-    tokeep <- suit_bar > 0 & !is.na(suit_bar)
-    noz <- data[tokeep, 2:3]
-    suit_bar <- suit_bar[tokeep]
-  }
+
   sp <- ifelse(is.null(data), "Species", as.character(data[1, 1]))
 
+  if (is.null(data)) {
+    noz <- terra::as.data.frame(suit_layer, xy = TRUE)
+    noz <- noz[noz[, 3] > 0, ]
 
-  return(data.frame(species = sp, longitude = noz[, 1], latitude = noz[, 2],
-                    suitability = suit_bar))
+    return(data.frame(species = sp, longitude = noz[, 1], latitude = noz[, 2],
+                      suitability = noz[, 3]))
+  } else {
+    suit_bar <- terra::extract(suit_layer, data[, 2:3])[, 2]
+    tokeep <- suit_bar > 0 & !is.na(suit_bar)
+
+    return(data.frame(species = sp, longitude = data[tokeep, 2],
+                      latitude = data[tokeep, 3],
+                      suitability = suit_bar[tokeep]))
+  }
 }
 
 
