@@ -20,7 +20,7 @@ M_simulationR(data, current_variables, starting_proportion = 0.5,
 \item{data}{data.frame with occurrence records for the species of interest to
 be used to run the simulation; columns must be: species, longitude, latitude.}
 
-\item{current_variables}{RasterStack of environmental variables representing
+\item{current_variables}{SpatRaster of environmental variables representing
 "current" conditions (interglacial). Recommended projection WGS84 (EPSG:4326).}
 
 \item{starting_proportion}{(numeric) proportion of \code{data} located in
@@ -32,7 +32,7 @@ Default = 0.5. All data is used if a value of 1 is defined.}
 Options are: "random" and "suitability". Using the option "suitability"
 prioritizes records with higher suitability values. Default = "random".}
 
-\item{barriers}{RasterLayer representing dispersal barriers for the species.
+\item{barriers}{SpatRaster representing dispersal barriers for the species.
 This layer must have the same extent and projection than
 \code{current_variables}. The only values allowed in this layer are 1 and NA;
 1 = barrier. Default = NULL.}
@@ -52,7 +52,7 @@ arguments \code{projection_variables}, \code{simulation_period},
 \code{lgm_to_current}, and \code{scenario_span} need to be defined.
 Default = FALSE.}
 
-\item{projection_variables}{RasterStack of environmental variables
+\item{projection_variables}{SpatRaster of environmental variables
 representing the "Last Glacial Maximum" scenario. Variable names, projection,
 and extent of these layers must be the same than those in
 \code{current_variables}.}
@@ -122,13 +122,13 @@ A list containing:
 started.
 \item all and ordered scenarios considered for the simulation
 \item a list with the parameters used during the simulation
-\item accessible areas as a RasterLayer (value 1 = accessed)
-\item accessible areas as a SpatialPolygons* object (only accessed areas)
-\item a RasterLayer representing mean values of accessibility frequency among
+\item accessible areas as a SpatRaster (value 1 = accessed)
+\item accessible areas as a SpatVector object (only accessed areas)
+\item a SpatRaster representing mean values of accessibility frequency among
 replicates
-\item a RasterLayer representing variance among values of accessibility frequency
+\item a SpatRaster representing variance among values of accessibility frequency
 of all replicates
-\item if defined, the RasterLayer used in \code{barriers}, else NULL
+\item if defined, the SpatRaster used in \code{barriers}, else NULL
 }
 
 The complete set of results derived from data preparation and the simulation
@@ -176,8 +176,8 @@ conditions and other parameter defined in \code{simulation_period},
 \examples{
 # data
 data("records", package = "grinnell")
-variables <- raster::stack(system.file("extdata/variables.tif",
-                                       package = "grinnell"))
+variables <- terra::rast(system.file("extdata/variables.tif",
+                                     package = "grinnell"))
 # example in current scenario
 m <- M_simulationR(data = records, current_variables = variables,
                    max_dispersers = 2, replicates = 3, dispersal_events = 5,
@@ -185,9 +185,8 @@ m <- M_simulationR(data = records, current_variables = variables,
 
 # example under changing climatic conditions (starting from the past)
 \donttest{
-variables_lgm <- raster::stack(system.file("extdata/variables_lgm.tif",
-                                           package = "grinnell"))
-names(variables_lgm) <- names(variables)
+variables_lgm <- terra::rast(system.file("extdata/variables_lgm.tif",
+                                         package = "grinnell"))
 
 m_p <- M_simulationR(data = records, current_variables = variables,
                      project = TRUE, projection_variables = variables_lgm,
@@ -199,8 +198,8 @@ m_p <- M_simulationR(data = records, current_variables = variables,
                      output_directory = file.path(tempdir(), "eg_Msim1_p"))
 
 # example under changing conditions, considering dispersal barriers
-barrier <- raster::raster(system.file("extdata/barrier.tif",
-                                      package = "grinnell"))
+barrier <- terra::rast(system.file("extdata/barrier.tif",
+                                   package = "grinnell"))
 
 m_pb <- M_simulationR(data = records, current_variables = variables,
                       barriers = barrier, project = TRUE,
