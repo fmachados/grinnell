@@ -20,15 +20,15 @@ what is not suitable. Default = 5.}
 \item{interpolation_values}{list of results from using the function
 \code{\link{interpolation_values}}.}
 
-\item{barriers}{RasterLayer representing dispersal barriers for the species.
+\item{barriers}{SpatRaster representing dispersal barriers for the species.
 This layer must have the same extent and projection than
 \code{current_variables}. The only values allowed in this layer are 0 and 1;
 0 = barrier, 1 = all other areas. Default = NULL.}
 
-\item{current_variables}{RasterStack of environmental variables representing
+\item{current_variables}{SpatRaster of environmental variables representing
 "current" conditions (interglacial).}
 
-\item{projection_variables}{RasterStack of environmental variables
+\item{projection_variables}{SpatRaster of environmental variables
 representing the "Last Glacial Maximum" scenario. Variable names, projection
 and extent of these layers must be the same than those in
 \code{current_variables}.}
@@ -40,7 +40,7 @@ of suitability for the interglacial (current) scenario.}
 suitability for the glacial (LGM) scenario.}
 
 \item{out_format}{(character) format of layers to be written in
-\code{output_directory}. Options are "ascii", "GTiff", and "EHdr" = bil.
+\code{output_directory}. Options are "ascii" and "GTiff".
 Default = "GTiff".}
 
 \item{output_directory}{(character) name of the folder where results will be

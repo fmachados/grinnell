@@ -6,13 +6,13 @@
 #' what is not suitable. Default = 5.
 #' @param interpolation_values list of results from using the function
 #' \code{\link{interpolation_values}}.
-#' @param barriers RasterLayer representing dispersal barriers for the species.
+#' @param barriers SpatRaster representing dispersal barriers for the species.
 #' This layer must have the same extent and projection than
 #' \code{current_variables}. The only values allowed in this layer are 0 and 1;
 #' 0 = barrier, 1 = all other areas. Default = NULL.
-#' @param current_variables RasterStack of environmental variables representing
+#' @param current_variables SpatRaster of environmental variables representing
 #' "current" conditions (interglacial).
-#' @param projection_variables RasterStack of environmental variables
+#' @param projection_variables SpatRaster of environmental variables
 #' representing the "Last Glacial Maximum" scenario. Variable names, projection
 #' and extent of these layers must be the same than those in
 #' \code{current_variables}.
@@ -21,7 +21,7 @@
 #' @param lgm_suitability (character) name of the file representing values of
 #' suitability for the glacial (LGM) scenario.
 #' @param out_format (character) format of layers to be written in
-#' \code{output_directory}. Options are "ascii", "GTiff", and "EHdr" = bil.
+#' \code{output_directory}. Options are "ascii" and "GTiff".
 #' Default = "GTiff".
 #' @param output_directory (character) name of the folder where results will be
 #' written.
@@ -85,7 +85,7 @@ interpolation <- function(ellipsoid_model, suitability_threshold = 5,
         pc_inter[[j]] <- (current_variables[[j]] * (1 - spot_val)) +
           (projection_variables[[j]] * spot_val)
       }
-      pc_inter <- do.call(raster::stack, pc_inter)
+      pc_inter <- terra::rast(pc_inter)
 
       ## suitability projections
       suit_p <- predict_esuitability(ellipsoid_model = ellipsoid_model,
@@ -102,7 +102,7 @@ interpolation <- function(ellipsoid_model, suitability_threshold = 5,
       ## write suitability layer other scenarios
       ip_name <- paste0(output_directory, "/suitability_interpolation", i,
                         rformat_type(out_format))
-      raster::writeRaster(suit_p, ip_name, format = out_format)
+      terra::writeRaster(suit_p, ip_name)
 
       suit_name[i] <- normalizePath(ip_name)
 
