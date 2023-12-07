@@ -26,12 +26,13 @@ save_nicheplot <- function(ellipsoid_model, suitability_threshold, variables,
   el <- ellipse::ellipse(x = ellipsoid_model[[3]], centre = ellipsoid_model[[2]],
                          level = (100 - suitability_threshold) / 100)
 
-  background <- na.omit(raster::values(variables[[1:2]]))
+  background <- terra::as.data.frame(variables[[1:2]])
   nr <- nrow(background)
   if (nr > 5000) {background <- background[sample(nr, size = 5000), ]}
 
   xlim <- range(range(el[, 1]), range(background[, 1]))
   ylim <- range(range(el[, 2]), range(background[, 2]))
+  ylim <- c(ylim[1], ylim[2] + (diff(ylim) * 0.1))
 
   ## saving figure
   png(paste0(output_directory, "/niche_ellipsoid.png"), width = 80, height = 80,
@@ -43,7 +44,8 @@ save_nicheplot <- function(ellipsoid_model, suitability_threshold, variables,
   points(ellipsoid_model[[1]][, 3:4], pch = 16, col = "black", cex = 0.65)
   legend("topright", legend = c("Background", "Occurrences", "Niche ellipsoid"),
          lty = c(NA, NA, 1), lwd = c(NA, NA, 1), pch = c(1, 16, NA),
-         col = c("grey75", "black", "black"), bty = "n", horiz = TRUE, cex = 0.85)
+         col = c("grey75", "black", "black"), bty = "n", horiz = TRUE,
+         cex = 0.85)
   dev.off()
 }
 
@@ -51,19 +53,16 @@ save_nicheplot <- function(ellipsoid_model, suitability_threshold, variables,
 # metadata from base raster layer
 layer_metadata <- function(layer) {
   return(list(
-    NW_vertex = raster::extent(layer)[c(4, 1)],
-    cell_size = raster::res(layer)[1],
-    layer_dim = c(raster::nrow(layer), raster::ncol(layer))
+    NW_vertex = terra::ext(layer)[c(4, 1)],
+    cell_size = terra::res(layer)[1],
+    layer_dim = c(terra::nrow(layer), terra::ncol(layer))
   ))
 }
 
 
 # prepare S matrix from base raster
 base_matrix <- function(layer) {
-  return(
-    matrix(layer[], nrow = raster::nrow(layer), ncol = raster::ncol(layer),
-           byrow = TRUE)
-  )
+  return(terra::as.matrix(layer, wide = TRUE))
 }
 
 
@@ -134,7 +133,6 @@ replicate_stats <- function(list_replicates, base_matrix, layer, threshold) {
 rformat_type <- function(format) {
   if (missing(format)) {stop("Argument 'format' needs to be defined")}
   if (format == "GTiff") {format1 <- ".tif"}
-  if (format == "EHdr") {format1 <- ".bil"}
   if (format == "ascii") {format1 <- ".asc"}
   return(format1)
 }
@@ -143,17 +141,14 @@ rformat_type <- function(format) {
 # write raster layers of simulation results
 write_stats <- function(rep_stat_list, names, format, directory) {
   format1 <- rformat_type(format)
-  raster::writeRaster(
-    rep_stat_list[[1]], filename = paste0(directory, "/", names[1], format1),
-    format = format
+  terra::writeRaster(
+    rep_stat_list[[1]], filename = paste0(directory, "/", names[1], format1)
   )
-  raster::writeRaster(
-    rep_stat_list[[2]], filename = paste0(directory, "/", names[2], format1),
-    format = format
+  terra::writeRaster(
+    rep_stat_list[[2]], filename = paste0(directory, "/", names[2], format1)
   )
-  raster::writeRaster(
-    rep_stat_list[[3]], filename = paste0(directory, "/", names[3], format1),
-    format = format
+  terra::writeRaster(
+    rep_stat_list[[3]], filename = paste0(directory, "/", names[3], format1)
   )
 }
 
@@ -163,17 +158,17 @@ write_stats <- function(rep_stat_list, names, format, directory) {
 M_preparation <- function(directory, A_bin = NULL, A_name = NULL,
                           raster_format = "GTiff") {
   if (is.null(A_bin) & !is.null(A_name)) {
-    A_bin <- raster::raster(paste0(directory, "/", A_name))
+    A_bin <- terra::rast(paste0(directory, "/", A_name))
   }
 
   A_bin[A_bin[] == 0] <- NA
-  A_bin <- raster::trim(A_bin)
-  shpm <- raster::rasterToPolygons(A_bin, dissolve = TRUE)
-  sp::proj4string(shpm) <- A_bin@crs
+  A_bin <- terra::trim(A_bin)
+  shpm <- terra::as.polygons(A_bin, dissolve = TRUE)
 
-  rgdal::writeOGR(shpm, directory, "accessible_area_M", driver = "ESRI Shapefile")
+  terra::writeVector(shpm,
+                     filename = paste0(directory, "/accessible_area_M.shp"))
   m_name <- paste0(directory, "/accessible_area_M", rformat_type(raster_format))
-  raster::writeRaster(A_bin, filename = m_name, format = raster_format)
+  terra::writeRaster(A_bin, filename = m_name)
 
   return(list(A_bin, shpm))
 }
@@ -194,19 +189,16 @@ t_col <- function(col, alpha = 1, names = NULL) {
 # saves plot of accessed areas (M) after simulation is done
 save_Mplot <- function(ellipsoid_model, suitability_layer, M_polygon,
                        size_proportion = 0.55, output_directory) {
-  boxpam <- t(matrix(suitability_layer@extent, 2, byrow = T))
-  boxpam <- sp::SpatialPointsDataFrame(boxpam, data.frame(boxpam),
-                                       proj4string = M_polygon@proj4string)
 
-  png(paste0(output_directory, "/Accessible_area_M.png"), width = 80, height = 80,
-      units = "mm", res = 600)
-  par(mar = c(0.5, 0.5, 0.5, 0.5), cex = size_proportion)
-  sp::plot(boxpam, col = NA)
-  raster::image(suitability_layer, col = rev(terrain.colors(255)),
-                axes = FALSE, add = TRUE)
-  sp::plot(M_polygon, lwd = 1, border = "blue4", add = TRUE)
+  png(paste0(output_directory, "/Accessible_area_M.png"), width = 80,
+      height = 80, units = "mm", res = 600)
+  par(cex = size_proportion)
+
+  terra::plot(suitability_layer, legend = FALSE,
+              mar = c(1.2, 1.2, 0.5, 0.5))
+  terra::plot(M_polygon, lwd = 1, border = "blue4", add = TRUE)
   points(ellipsoid_model[[1]][, 1:2], pch = 16, cex = 0.6)
-  box()
+
   dev.off()
 }
 
@@ -217,24 +209,25 @@ save_event_plot <- function(data, event_simulation_results, barriers = NULL,
                             size_proportion = 0.55, output_directory) {
 
   cola <- t_col("black", 0.5)
+  mar1 <- c(1.2, 1.2, 1.5, 3.5)
 
   png(paste0(output_directory, "/Accessed_colonized_per_event.png"),
       width = 166, height = 80, units = "mm", res = 600)
 
-  par(mfrow = c(1, 2), mar = c(0.5, 0.5, 1, 1))
+  par(mfrow = c(1, 2))
   par(cex = size_proportion)
-  raster::plot(event_simulation_results$A_events, main = "Accessed areas",
-               axes = FALSE, legend = FALSE)
+  terra::plot(event_simulation_results$A_events, main = "Accessed areas",
+              legend = FALSE, mar = mar1)
   if (!is.null(barriers)) {
-    raster::image(barriers, col = cola, axes = FALSE, add = TRUE)
+    terra::plot(barriers, col = cola, axes = FALSE, legend = FALSE, add = TRUE)
   }
   points(data[, 2:3], pch = 16, cex = 0.3)
 
   par(cex = size_proportion)
-  raster::plot(event_simulation_results$C_events, main = "Colonized areas",
-               axes = FALSE)
+  terra::plot(event_simulation_results$C_events, main = "Colonized areas",
+              mar = mar1)
   if (!is.null(barriers)) {
-    raster::image(barriers, col = cola, axes = FALSE, add = TRUE)
+    terra::plot(barriers, col = cola, axes = FALSE, legend = FALSE, add = TRUE)
   }
   points(data[, 2:3], pch = 16, cex = 0.3)
 
