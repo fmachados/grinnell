@@ -11,7 +11,8 @@ M_simulation(data, current_variables, barriers = NULL, project = FALSE,
              replicates = 10, dispersal_events = 20,
              access_threshold = 5, simulation_period = 50,
              stable_lgm = 7, transition_to_lgm = 100, lgm_to_current = 7,
-             stable_current = 13, scenario_span = 1, output_directory)
+             stable_current = 13, scenario_span = 1, output_directory,
+             overwrite = FALSE)
 }
 \arguments{
 \item{data}{(character) name of the csv file with all the occurrences used to
@@ -93,6 +94,9 @@ for changing the scenario. Default = 1 (one thousand years).}
 
 \item{output_directory}{(character) name of the output directory to be created
 in which all results will be written.}
+
+\item{overwrite}{(logical) whether or not to overwrite the
+\code{output_directory} if it already exists. Default = FALSE.}
 }
 \value{
 The complete set of results derived from data preparation and the simulation

@@ -76,6 +76,8 @@
 #' for all scenarios. The default, FALSE, writes only the final results.
 #' @param output_directory (character) name of the output directory to be created
 #' in which all results will be written.
+#' @param overwrite (logical) whether or not to overwrite the
+#' \code{output_directory} if it already exists. Default = FALSE.
 #'
 #' @return
 #' A list containing:
@@ -118,7 +120,8 @@
 #'               stable_lgm = 7, transition_to_lgm = 100,
 #'               lgm_to_current = 7, stable_current = 13,
 #'               scenario_span = 1, out_format = "GTiff", set_seed = 1,
-#'               write_all_scenarios = FALSE, output_directory)
+#'               write_all_scenarios = FALSE, output_directory,
+#'               overwrite = FALSE)
 #'
 #' @details
 #' A principal component analysis is performed with \code{current_variables}.
@@ -195,7 +198,8 @@ M_simulationR <- function(data, current_variables, starting_proportion = 0.5,
                           stable_lgm = 7, transition_to_lgm = 100,
                           lgm_to_current = 7, stable_current = 13,
                           scenario_span = 1, out_format = "GTiff", set_seed = 1,
-                          write_all_scenarios = FALSE, output_directory) {
+                          write_all_scenarios = FALSE, output_directory,
+                          overwrite = FALSE) {
 
   # --------
   # testing for initial requirements
@@ -208,6 +212,13 @@ M_simulationR <- function(data, current_variables, starting_proportion = 0.5,
   if (missing(output_directory)) {
     stop("Argument 'output_directory' must be defined")
   }
+  if (overwrite == FALSE & dir.exists(output_directory)) {
+    stop("'output_directory' already exists, to replace it use overwrite = TRUE")
+  }
+  if (overwrite == TRUE & dir.exists(output_directory)) {
+    unlink(x = output_directory, recursive = TRUE, force = TRUE)
+  }
+
   if (!sampling_rule %in% c("random", "suitability")) {
     stop("Argument 'sampling_rule' is not valid")
   }

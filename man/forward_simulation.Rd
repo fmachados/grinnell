@@ -11,7 +11,8 @@ forward_simulation(suit_layer, data = NULL, suit_forward = NULL,
                    kernel_spread = 1, max_dispersers = 4,
                    dispersal_events = 25, replicates = 10,
                    threshold = 5, set_seed = 1,
-                   out_format = "GTiff", output_directory)
+                   out_format = "GTiff", output_directory,
+                   overwrite = FALSE)
 }
 \arguments{
 \item{suit_layer}{(character) name of (local) raster layer containing values
@@ -76,9 +77,11 @@ according to \code{starting_proportion}. Default = 1.}
 \code{output_directory}. Options are "ascii" and "GTiff".
 Default = "GTiff".}
 
-\item{output_directory}{(character) name of the output directory where
-results should be written. If this directory does not exist, it will be
-created.}
+\item{output_directory}{(character) name of the output directory to be created
+in which all results will be written.}
+
+\item{overwrite}{(logical) whether or not to overwrite the
+\code{output_directory} if it already exists. Default = FALSE.}
 }
 \value{
 A list containing:

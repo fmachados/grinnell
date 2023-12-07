@@ -51,9 +51,10 @@
 #' @param out_format (character) format of raster layers to be written in
 #' \code{output_directory}. Options are "ascii" and "GTiff".
 #' Default = "GTiff".
-#' @param output_directory (character) name of the output directory where
-#' results should be written. If this directory does not exist, it will be
-#' created.
+#' @param output_directory (character) name of the output directory to be created
+#' in which all results will be written.
+#' @param overwrite (logical) whether or not to overwrite the
+#' \code{output_directory} if it already exists. Default = FALSE.
 #'
 #' @export
 #' @importFrom grDevices rgb col2rgb
@@ -67,7 +68,8 @@
 #'                    kernel_spread = 1, max_dispersers = 4,
 #'                    dispersal_events = 25, replicates = 10,
 #'                    threshold = 5, set_seed = 1,
-#'                    out_format = "GTiff", output_directory)
+#'                    out_format = "GTiff", output_directory,
+#'                    overwrite = FALSE)
 #'
 #' @return
 #' A list containing:
@@ -148,7 +150,8 @@ forward_simulation <- function(suit_layer, data = NULL, suit_forward = NULL,
                                kernel_spread = 1, max_dispersers = 4,
                                dispersal_events = 25, replicates = 10,
                                threshold = 5, set_seed = 1,
-                               out_format = "GTiff", output_directory) {
+                               out_format = "GTiff", output_directory,
+                               overwrite = FALSE) {
   # --------
   # testing for initial requirements
   if (missing(suit_layer)) {
@@ -157,6 +160,13 @@ forward_simulation <- function(suit_layer, data = NULL, suit_forward = NULL,
   if (missing(output_directory)) {
     stop("Argument 'output_directory' must be defined")
   }
+  if (overwrite == FALSE & dir.exists(output_directory)) {
+    stop("'output_directory' already exists, to replace it use overwrite = TRUE")
+  }
+  if (overwrite == TRUE & dir.exists(output_directory)) {
+    unlink(x = output_directory, recursive = TRUE, force = TRUE)
+  }
+
   if (!sampling_rule %in% c("random", "suitability")) {
     stop("Argument 'sampling_rule' is not valid")
   }

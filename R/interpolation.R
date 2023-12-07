@@ -24,7 +24,7 @@
 #' \code{output_directory}. Options are "ascii" and "GTiff".
 #' Default = "GTiff".
 #' @param output_directory (character) name of the folder where results will be
-#' written.
+#' written. This directory must exist.
 #'
 #' @export
 #'

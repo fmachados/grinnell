@@ -14,7 +14,8 @@ M_simulationR(data, current_variables, starting_proportion = 0.5,
               stable_lgm = 7, transition_to_lgm = 100,
               lgm_to_current = 7, stable_current = 13,
               scenario_span = 1, out_format = "GTiff", set_seed = 1,
-              write_all_scenarios = FALSE, output_directory)
+              write_all_scenarios = FALSE, output_directory,
+              overwrite = FALSE)
 }
 \arguments{
 \item{data}{data.frame with occurrence records for the species of interest to
@@ -114,6 +115,9 @@ for all scenarios. The default, FALSE, writes only the final results.}
 
 \item{output_directory}{(character) name of the output directory to be created
 in which all results will be written.}
+
+\item{overwrite}{(logical) whether or not to overwrite the
+\code{output_directory} if it already exists. Default = FALSE.}
 }
 \value{
 A list containing:

@@ -7,7 +7,7 @@
 pca_raster(variables, in_format = NULL, scale = TRUE, center = TRUE,
            n_pcs = NULL, project = FALSE, projection_variables,
            return_projection = FALSE, write_to_directory = FALSE,
-           out_format = "GTiff", output_directory)
+           out_format = "GTiff", output_directory, overwrite = FALSE)
 }
 \arguments{
 \item{variables}{SpatRaster or character. If SpatRaster, stack of layers to
@@ -50,6 +50,9 @@ Default = "GTiff".}
 
 \item{output_directory}{(character) name of the folder to be created to save
 results.}
+
+\item{overwrite}{(logical) whether or not to overwrite the
+\code{output_directory} if it already exists. Default = FALSE.}
 }
 \value{
 A list containing:

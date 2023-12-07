@@ -34,6 +34,8 @@
 #' Default = "GTiff".
 #' @param output_directory (character) name of the folder to be created to save
 #' results.
+#' @param overwrite (logical) whether or not to overwrite the
+#' \code{output_directory} if it already exists. Default = FALSE.
 #'
 #' @return
 #' A list containing:
@@ -50,12 +52,13 @@
 #' pca_raster(variables, in_format = NULL, scale = TRUE, center = TRUE,
 #'            n_pcs = NULL, project = FALSE, projection_variables,
 #'            return_projection = FALSE, write_to_directory = FALSE,
-#'            out_format = "GTiff", output_directory)
+#'            out_format = "GTiff", output_directory, overwrite = FALSE)
 
 pca_raster <- function(variables, in_format = NULL, scale = TRUE, center = TRUE,
                        n_pcs = NULL, project = FALSE, projection_variables,
                        return_projection = FALSE, write_to_directory = FALSE,
-                       out_format = "GTiff", output_directory) {
+                       out_format = "GTiff", output_directory,
+                       overwrite = FALSE) {
 
   # checking for potential errors
   if (missing(variables)) {
@@ -82,6 +85,16 @@ pca_raster <- function(variables, in_format = NULL, scale = TRUE, center = TRUE,
   if (write_to_directory & missing(output_directory)) {
     stop("If 'write_to_directory' = TRUE, 'output_directory' must be defined")
   }
+
+  if (write_to_directory & !missing(output_directory)) {
+    if (overwrite == FALSE & dir.exists(output_directory)) {
+      stop("'output_directory' already exists, to replace it use overwrite = TRUE")
+    }
+    if (overwrite == TRUE & dir.exists(output_directory)) {
+      unlink(x = output_directory, recursive = TRUE, force = TRUE)
+    }
+  }
+
 
   # preparing things
   patt1 <- rformat_type(out_format)

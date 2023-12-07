@@ -64,6 +64,8 @@
 #' dispersal. Default = 5.
 #' @param output_directory (character) name of the output directory to be created
 #' in which all results will be written.
+#' @param overwrite (logical) whether or not to overwrite the
+#' \code{output_directory} if it already exists. Default = FALSE.
 #'
 #' @return
 #' The complete set of results derived from data preparation and the simulation
@@ -87,7 +89,8 @@
 #'              replicates = 10, dispersal_events = 20,
 #'              access_threshold = 5, simulation_period = 50,
 #'              stable_lgm = 7, transition_to_lgm = 100, lgm_to_current = 7,
-#'              stable_current = 13, scenario_span = 1, output_directory)
+#'              stable_current = 13, scenario_span = 1, output_directory,
+#'              overwrite = FALSE)
 #'
 #' @export
 #' @importFrom terra writeRaster rast trim as.polygons crs vect plot writeVector
@@ -198,10 +201,25 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
                          access_threshold = 5, simulation_period = 50,
                          stable_lgm = 7, transition_to_lgm = 100, lgm_to_current = 7,
                          stable_current = 13, scenario_span = 1,
-                         output_directory) {
+                         output_directory, overwrite = FALSE) {
 
   # --------
   # testing for initial requirements
+  ## existing directpry
+  if (missing(output_directory)) {
+    stop("Argument 'output_directory' must be defined")
+  }
+  if (overwrite == FALSE & dir.exists(output_directory)) {
+    stop("'output_directory' already exists, to replace it use overwrite = TRUE")
+  }
+  if (overwrite == TRUE & dir.exists(output_directory)) {
+    unlink(x = output_directory, recursive = TRUE, force = TRUE)
+  }
+
+  if (missing(data)) {
+    stop("Argument 'data' must be defined")
+  }
+
   ## python 3.6 or superior
   message("Checking dependencies")
   if (.Platform$OS.type == "unix") {

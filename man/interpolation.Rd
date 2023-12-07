@@ -44,7 +44,7 @@ suitability for the glacial (LGM) scenario.}
 Default = "GTiff".}
 
 \item{output_directory}{(character) name of the folder where results will be
-written.}
+written. This directory must exist.}
 }
 \value{
 A vector with names of files corresponding to each interpolation scenario.
