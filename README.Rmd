@@ -4,7 +4,7 @@ author: "Fernando Machado-Stredel, Marlon E. Cobos, and A. Townsend Peterson"
 output:
   github_document:
     toc: yes
-    toc_depth: 3
+    toc_depth: 4
 ---
 
 ```{r knitr_init, echo=FALSE, cache=FALSE, message=FALSE}
@@ -14,17 +14,21 @@ knitr::opts_chunk$set(echo = TRUE, collapse = TRUE, comment = "#>")
 <hr>
 
 ## Project description
-**grinnell** is an R package to simulate dispersal and accessibility based on niche estimations. One of the main functionalities is the simulation of species accessible areas (M), which can be used as calibration areas in Ecological Niche Models (ENM) and Species Distribution Models (SDM).
+
+**grinnell** is an R package to simulate dispersal, colonization, and accessibility based on niche estimations. One of the main algorithms implemented here is the simulation of species accessible areas (M), which can be used as calibration areas in Ecological Niche Models (ENM) and Species Distribution Models (SDM).
 
 To simulate M, grinnell uses the same inputs needed by several ENM and SDM: clean occurrences of the study species and a set of climatic layers (rasters).
 
 ### Status of the project
-Currently, input and output processing are done in R, while the simulation runs in Python. We are testing new functions to migrate to R and submit the package to CRAN.
+
+Currently, all processes are implemented in R. The package keeps the original functions that work with Python, but R functions work faster due to vectorized implementations. We recommend to use the R versions of the functions for simplicity and speed. We are testing new functions to submit the package to CRAN.
 
 <hr>
+<br>
 
 ## Installation
-To install and call **grinnell** use:
+
+To install and call `grinnell` use:
 
 ```{r install, eval=FALSE}
 if (!require("remotes")) {
@@ -35,11 +39,106 @@ remotes::install_github("fmachados/grinnell")
 library(grinnell)
 ```
 
-Mac users might need to install packages like **rgeos** and **rgdal** manually or update XCode Command Line Tools.
+```{r load_package, echo = FALSE}
+library(grinnell)
+```
 
 <hr>
+<br>
 
-## Python requirements
+## M simulation example
+
+The example presented here is also part of the examples included in the documentation of the main function to run the simulation (`M_simualtionR`). Review this documentation carefully to understand the method you are bout to use:
+
+```{r help, eval=FALSE}
+help(M_simulationR)
+```
+
+### Data for the example
+
+All data to run the example is included in `grinnell`. Use the code bellow to load the:
+
+```{r data_sim, eval=TRUE}
+# occurrence data
+data("records", package = "grinnell")
+
+# environmental layers
+variables <- terra::rast(system.file("extdata/variables.tif",
+                                     package = "grinnell"))
+```
+
+
+You can plot the records over one of the variables using:
+
+```{r occ.plot, eval=TRUE}
+terra::plot(variables[[1]], main = "Mean Temperature")
+points(records[, 2:3])
+```
+
+
+### Running the simulation
+
+The function `M_simulationR` runs the entire set of processes needed to obtain an area that has been accessible for a species. This includes steps like performing PCA, defining a hypothesis of suitability for the species, and the dispersal algorithm itself. For this reason, many outputs are generated. The best way to avoid excessive use of your RAM is to store the sub-products in your directory. For that reason, you need to define an output directory in which to store all these results. The main results are returned in a list.
+
+The simulation of M will use species occurrences as a `data.frame` and current climatic variables as a `SpatRaster`. The following example runs 3 replicates of the simulation using a normal dispersal kernel with SD = 1 pixel, considering 25 dispersal events. The maximum number of dispersers per cell during each dispersal event is 4, which varies according to the suitability of the cell.
+
+```{r msim, eval=TRUE}
+# output directory
+out_dir <- file.path(tempdir(), "eg_Msim")
+
+# example in current scenario
+m <- M_simulationR(data = records, current_variables = variables,
+                   max_dispersers = 2, replicates = 3, dispersal_events = 25,
+                   output_directory = out_dir)
+```
+
+The output folder ("eg_Msim") includes a report from the process, PCA directory, a suitability directory with an ellipsoidal niche figure, and the accessible area (M) in shapefile (.shp) and raster (.tif) formats, among other outputs. You can check the report text file to see the simulation time and parameters used. A png image will show how the accessible area (blue outline) looks like, for a quick view.
+
+Now, check some of the results returned in the list:
+
+```{r res_sim, eval=TRUE}
+# the occurrences used with relevant fields added
+head(m$Simulation_occurrences)
+
+# a summary of the parameters used
+m$Summary
+
+# plotting M results
+## map of frequency of accessibility
+terra::plot(m$A_mean, main = "Mean accessibility frequency")
+
+## accessible areas in raster format
+lims <- terra::ext(m$A_mean)[]  # limits for plotting
+
+terra::plot(m$A_raster, main = "Accessed areas", xlim = lims[1:2], 
+            ylim = lims[3:4])
+
+## accessible areas in vector format
+terra::plot(m$A_polygon, main = "Accessed areas", xlim = lims[1:2], 
+            ylim = lims[3:4])
+```
+
+<hr>
+<br>
+
+## Using your own data
+
+Running the M simulation in R is now a lot easier. Follow the example from above to run a simulation using only a current Environmental scenario. If you want to explore using the M simulation in framework that considers cyclic Glacial and Inter-glacial environmental conditions, and/or use dispersal barriers, you can see the argument description and the examples in the function documentation:
+
+```{r help_user, eval=FALSE}
+# Check the functions help
+help(M_simulationR)
+```
+
+<hr>
+<br>
+
+## Working with Python functions
+
+The original version of the dispersal simulation algortihm was written in Python. Now all processes can be run directly in R without Python. If you want to try running with the options that use Python, check the descriptions and code below. 
+
+### Python requirements
+
 Please download and install [Python](https://www.python.org/downloads/) 3.6 or higher in your computer. If you have Anaconda already installed in your system, you can skip this section.
 
 You can check your current Python version in R with:
@@ -52,7 +151,7 @@ system("python --version")
 system("python3 --version")
 ```
 
-In each new R session, before using **grinnell**, you should call Python:
+In each new R session, before using `grinnell`, you should call Python:
 
 ```{r py.call, eval=FALSE}
 # You can find your Python path using:
@@ -81,9 +180,12 @@ system("python3 -m pip install numpy")
 ```
 
 <hr>
+<br>
 
-## M simulation 
-### Using example data
+### M simulation (using Python) 
+
+#### Preparing example data
+
 Here is one of the examples from the M_simulation function's help section. This creates some temporary directories and uses data from the package:
 
 ```{r sim.ex1, eval=FALSE}
@@ -96,31 +198,24 @@ occ <- paste0(tempdir, "/records1.csv")
 write.csv(records, occ, row.names = FALSE)
 
 # Current climate variables
-variables <- raster::stack(system.file("extdata/variables.tif",
-                                       package = "grinnell"))
+variables <- terra::rast(system.file("extdata/variables.tif",
+                                     package = "grinnell"))
+
 cvariables <- paste0(tempdir, "/variables") 
 dir.create(cvariables)
-vnam <- paste0(cvariables, "/var.asc")
-raster::writeRaster(variables, filename = vnam, format = "ascii",
-                    bylayer = TRUE, suffix = 1:6)
+
+vnam <- paste0(cvariables, "/var_", 1:6, ".asc")
+terra::writeRaster(variables, filename = vnam)
 
 # Results will be stored here:
 odir1 <- paste0(tempdir, "/eg_msim1")
 ```
 
-You can plot the records over one of the variables using:
 
-```{r occ.plot, eval=FALSE}
-plot(raster(paste0(tempdir, "/variables/var_1.asc")), legend.args = list(text = "Mean Temperature",
-side = 4, line = 2.5))
-points(records[,2:3])
-```
 
-```{r, out.width="75%", fig.align="center", echo = FALSE}
-knitr::include_graphics("README_files/occplot.png")
-```
+#### The simulation
 
-The simulation of M will use a species occurrences data frame and a folder with current climatic variables in raster format (.asc). The following example runs 3 replicates of the simulation using a normal dispersal kernel with SD = 1 pixel during 5 dispersal events. The maximum number of dispersers per cell during each dispersal event is 2, which varies according to the suitability of the cell.
+The simulation of M will use a species occurrences `data.frame` and a folder with current climatic variables in raster format (.asc). The following example runs 3 replicates of the simulation using a normal dispersal kernel with SD = 1 pixel during 5 dispersal events. The maximum number of dispersers per cell during each dispersal event is 2, which varies according to the suitability of the cell. The function sued to interact with Python has slightly different arguments compared to `M_simulationR`, make sure you check its documentation using `hel(M_simulation)`.
 
 ```{r sim, eval=FALSE}
 M_simulation(data = occ, current_variables = cvariables,
@@ -129,47 +224,10 @@ M_simulation(data = occ, current_variables = cvariables,
              output_directory = odir1)
 ```
 
-The output folder ("eg_msim1") includes a PCA directory, a suitability directory with a fundamental niche ellipsoid, and the accessible area (M) in shape format, among other outputs. You can check the report text file to see the simulation time and parameters used. A png image will show how the accessible area (blue outline) will look over the current suitability layer:
+The output folder ("eg_msim1") includes basically all of the results created using the function `M_simulationR`. A png image will show how the accessible area (blue outline) will look over the current suitability layer:
 
 ```{r, out.width="50%", fig.align="center", echo = FALSE}
 knitr::include_graphics("README_files/Accessible_area_M.png")
 ```
 
-### Using your own data
-Before using **grinnell** remember to call Python (if you are in a new R session):
 
-```{r py.call.new, eval=FALSE}
-# Set your Python path
-py.path <- "YOUR-PATH/TO/PYTHON" # e.g., "C:/Python/Python39"
-
-# Call Python
-Sys.setenv(PATH = paste(py.path, Sys.getenv()["PATH"], sep = ";"))
-
-# Verify that Python 3.6 or higher has ben called:
-# Windows
-system("python --version")
-
-# Mac
-system("python3 --version")
-```
-
-To run the simulation in current climate layers with your own occurrence data, you can use something similar to the code below. Simulation time increases by layer extent (mask your rasters to a geographic region of interest or G), layer resolution, number of occurrences, number of replicates and number of dispersal events.
-
-```{r sim.user, eval=FALSE}
-# Set your directory
-setwd("YOUR/PATH")
-
-# occurrences file in your directory
-occ <- "records.csv" # Column format is: species, longitude, latitude
-
-# directory with climatic variables 
-variables <- "./variables" # Make sure to mask them first (avoid using global layers if not needed)
-
-# define an output directory
-out.dir <- "SimM_example" 
-
-M_simulation(data = occ, current_variables = variables,
-             dispersal_kernel = "normal", kernel_spread = 1,
-             max_dispersers = 2, replicates = 10, dispersal_events = 40,
-             output_directory = out.dir)
-```

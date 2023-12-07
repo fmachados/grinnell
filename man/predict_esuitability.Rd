@@ -22,7 +22,7 @@ The length and variables of centroid must correspond with those of layers in
 Mahalanobis distances. Ignored if \code{ellipsoid_model} is defined.
 Default = NULL.}
 
-\item{variables}{a RasterStack of variables representing the environmental
+\item{variables}{a SpatRaster of variables representing the environmental
 conditions in the area where the model will be transferred to.}
 
 \item{suitability_threshold}{(numeric) value (percentage) to be used as
@@ -37,11 +37,11 @@ A list containing:
 \item niche centroid
 \item covariance matrix
 \item proportion of suitable areas in environmental and geographic space
-\item suitability RasterLayer
+\item suitability SpatRaster
 }
 }
 \description{
-predict_esuitability predicts a RasterLayer of environmental
+predict_esuitability predicts a SpatRaster of environmental
 suitability based on Mahalanobis distances to a niche centroid and a
 covariance matrix.
 }

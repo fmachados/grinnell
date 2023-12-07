@@ -7,10 +7,10 @@
 pca_raster(variables, in_format = NULL, scale = TRUE, center = TRUE,
            n_pcs = NULL, project = FALSE, projection_variables,
            return_projection = FALSE, write_to_directory = FALSE,
-           out_format = "GTiff", output_directory)
+           out_format = "GTiff", output_directory, overwrite = FALSE)
 }
 \arguments{
-\item{variables}{RasterStack or character. If RasterStack, stack of layers to
+\item{variables}{SpatRaster or character. If SpatRaster, stack of layers to
 be used; if character, name of the folder where environmental variables
 are.}
 
@@ -31,10 +31,10 @@ raster layers. By default all principal components are returned.}
 scenario(s). If TRUE, argument \code{projection_variables} must be defined.
 Default = FALSE.}
 
-\item{projection_variables}{character or RasterStack. If character, name of
+\item{projection_variables}{character or SpatRaster. If character, name of
 the folder where one or more sub-directories containing variables of distinct
 environmental scenarios are (useful if multiple projections are needed).
-If RasterStack, stack of variables representing one scenario for projection.
+If SpatRaster, stack of variables representing one scenario for projection.
 Variable names must correspond with those of \code{variables} (i.e., their
 names must match).}
 
@@ -50,13 +50,16 @@ Default = "GTiff".}
 
 \item{output_directory}{(character) name of the folder to be created to save
 results.}
+
+\item{overwrite}{(logical) whether or not to overwrite the
+\code{output_directory} if it already exists. Default = FALSE.}
 }
 \value{
 A list containing:
 \itemize{
 \item PCA results
-\item RasterStack of principal components for \code{variables}
-\item if return_projection = TRUE, list of RasterStack objects with principal
+\item SpatRaster of principal components for \code{variables}
+\item if return_projection = TRUE, list of SpatRaster objects with principal
 components for other scenarios. NULL if \code{project} = FALSE.
 }
 }

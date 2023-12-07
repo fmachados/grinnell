@@ -100,7 +100,7 @@ according to \code{starting_proportion}. Default = 1.}
 scenarios. The default, FALSE, writes only the final results.}
 
 \item{raster_format}{(character) format to use for raster layers to be
-written. Options are: "GTiff", "EHdr", and "ascii", Default = "GTiff.}
+written. Options are: "GTiff" and "ascii". Default = "GTiff.}
 
 \item{output_directory}{(character) name of the output directory where
 results should be written. If this directory does not exist, it will be
@@ -121,26 +121,26 @@ The list returned contains:
 \item Summary: a list with a summary of scenarios and parameters used
 \item if \code{results_by} = "scenario":
 \itemize{
-\item A: a binary RasterLayer showing accessed = 1 and non-accessed areas = 0
-\item A_mean: a RasterLayer representing mean values of accessibility
+\item A: a binary SpatRaster showing accessed = 1 and non-accessed areas = 0
+\item A_mean: a SpatRaster representing mean values of accessibility
 frequency among replicates
-\item A_var: a RasterLayer representing variance among values of accessibility
+\item A_var: a SpatRaster representing variance among values of accessibility
 frequency of all replicates
-\item A_scenarios: a RasterLayer with values representing the number of the
+\item A_scenarios: a SpatRaster with values representing the number of the
 scenario when areas where accessed
-\item C: a binary RasterLayer showing colonized = 1 and non-colonized areas = 0
-\item C_mean: a RasterLayer representing mean values of frequency of
+\item C: a binary SpatRaster showing colonized = 1 and non-colonized areas = 0
+\item C_mean: a SpatRaster representing mean values of frequency of
 colonization among replicates
-\item C_var: a RasterLayer representing variance among values of frequency of
+\item C_var: a SpatRaster representing variance among values of frequency of
 colonization of all replicates
-\item C_scenarios: a RasterLayer with values representing the number of the
+\item C_scenarios: a SpatRaster with values representing the number of the
 scenario when areas where colonized
 }
 \item if \code{results_by} = "event":
 \itemize{
-\item A_events: a RasterLayer with values representing the number of the
+\item A_events: a SpatRaster with values representing the number of the
 dispersal event when areas where accessed
-\item C_events: a RasterLayer with values representing the number of the
+\item C_events: a SpatRaster with values representing the number of the
 dispersal event when areas where colonized
 }
 }

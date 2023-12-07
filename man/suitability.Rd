@@ -4,7 +4,7 @@
 \alias{suitability}
 \title{Example of layer representing environmental suitability for a species}
 \format{
-A RasterLayer with 108 rows, 84 columns, 9072 cells:
+A SpatRaster with 108 rows, 84 columns, 9072 cells:
 \describe{
 \item{suitability}{values from low = 0 to high = 1}
 }
@@ -14,8 +14,8 @@ A raster layer representing distinct levels of suitability for a species
 in a region where simulations can be performed in examples.
 }
 \examples{
-suitability <- raster::raster(system.file("extdata/suitability.tif",
+suitability <- terra::rast(system.file("extdata/suitability.tif",
                                           package = "grinnell"))
 
-raster::plot(suitability)
+terra::plot(suitability)
 }

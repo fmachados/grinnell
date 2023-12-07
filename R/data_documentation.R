@@ -23,7 +23,7 @@
 #' A dataset containing raster layers of climatic variables for a region where
 #' simulations can be performed in examples.
 #'
-#' @format A RasterStack with 108 rows, 84 columns, 9072 cells, and 6 layers:
+#' @format A SpatRaster with 108 rows, 84 columns, 9072 cells, and 6 layers:
 #' \describe{
 #'   \item{Temperature}{temperature, in Celsius degrees times 10.}
 #'   \item{Precipitation}{precipitation, in milimeters.}
@@ -32,10 +32,10 @@
 #' @source \url{https://www.worldclim.org/data/index.html}
 #'
 #' @examples
-#' variables <- raster::stack(system.file("extdata/variables.tif",
+#' variables <- terra::rast(system.file("extdata/variables.tif",
 #'                                        package = "grinnell"))
 #'
-#' raster::plot(variables[[1]])
+#' terra::plot(variables[[1]])
 #' @name variables
 NULL
 
@@ -47,7 +47,7 @@ NULL
 #' Glacial Maximum conditions for a region where simulations can be performed
 #' in examples.
 #'
-#' @format A RasterStack with 108 rows, 84 columns, 9072 cells, and 6 layers:
+#' @format A SpatRaster with 108 rows, 84 columns, 9072 cells, and 6 layers:
 #' \describe{
 #'   \item{Temperature}{temperature, in Celsius degrees times 10.}
 #'   \item{Precipitation}{precipitation, in milimeters.}
@@ -56,10 +56,10 @@ NULL
 #' @source \url{https://www.worldclim.org/data/index.html}
 #'
 #' @examples
-#' variables_lgm <- raster::stack(system.file("extdata/variables_lgm.tif",
+#' variables_lgm <- terra::rast(system.file("extdata/variables_lgm.tif",
 #'                                            package = "grinnell"))
 #'
-#' raster::plot(variables_lgm[[1]])
+#' terra::plot(variables_lgm[[1]])
 #' @name variables_lgm
 NULL
 
@@ -71,16 +71,16 @@ NULL
 #' A raster layer representing dispersal barriers for a species in a region
 #' where simulations can be performed in examples.
 #'
-#' @format A RasterLayer with 108 rows, 84 columns, 9072 cells:
+#' @format A SpatRaster with 108 rows, 84 columns, 9072 cells:
 #' \describe{
 #'   \item{barrier}{barriers are represented with values of 1}
 #' }
 #'
 #' @examples
-#' barrier <- raster::raster(system.file("extdata/barrier.tif",
+#' barrier <- terra::rast(system.file("extdata/barrier.tif",
 #'                                       package = "grinnell"))
 #'
-#' raster::plot(barrier)
+#' terra::plot(barrier)
 #' @name barrier
 NULL
 
@@ -92,16 +92,16 @@ NULL
 #' A raster layer representing distinct levels of suitability for a species
 #' in a region where simulations can be performed in examples.
 #'
-#' @format A RasterLayer with 108 rows, 84 columns, 9072 cells:
+#' @format A SpatRaster with 108 rows, 84 columns, 9072 cells:
 #' \describe{
 #'   \item{suitability}{values from low = 0 to high = 1}
 #' }
 #'
 #' @examples
-#' suitability <- raster::raster(system.file("extdata/suitability.tif",
+#' suitability <- terra::rast(system.file("extdata/suitability.tif",
 #'                                           package = "grinnell"))
 #'
-#' raster::plot(suitability)
+#' terra::plot(suitability)
 #' @name suitability
 NULL
 
@@ -113,15 +113,15 @@ NULL
 #' A raster layer representing distinct levels of future suitability for a
 #' species in a region where simulations can be performed in examples.
 #'
-#' @format A RasterLayer with 108 rows, 84 columns, 9072 cells:
+#' @format A SpatRaster with 108 rows, 84 columns, 9072 cells:
 #' \describe{
 #'   \item{suitability}{values from low = 0 to high = 1}
 #' }
 #'
 #' @examples
-#' suitability_fut <- raster::raster(system.file("extdata/suitability_fut.tif",
+#' suitability_fut <- terra::rast(system.file("extdata/suitability_fut.tif",
 #'                                               package = "grinnell"))
 #'
-#' raster::plot(suitability_fut)
+#' terra::plot(suitability_fut)
 #' @name suitability_fut
 NULL

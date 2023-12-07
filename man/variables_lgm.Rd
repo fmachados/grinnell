@@ -4,7 +4,7 @@
 \alias{variables_lgm}
 \title{Example of variables to represent current climate condition in a region}
 \format{
-A RasterStack with 108 rows, 84 columns, 9072 cells, and 6 layers:
+A SpatRaster with 108 rows, 84 columns, 9072 cells, and 6 layers:
 \describe{
 \item{Temperature}{temperature, in Celsius degrees times 10.}
 \item{Precipitation}{precipitation, in milimeters.}
@@ -19,8 +19,8 @@ Glacial Maximum conditions for a region where simulations can be performed
 in examples.
 }
 \examples{
-variables_lgm <- raster::stack(system.file("extdata/variables_lgm.tif",
+variables_lgm <- terra::rast(system.file("extdata/variables_lgm.tif",
                                            package = "grinnell"))
 
-raster::plot(variables_lgm[[1]])
+terra::plot(variables_lgm[[1]])
 }

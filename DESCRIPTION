@@ -1,7 +1,7 @@
 Package: grinnell
 Type: Package
-Title: Dispersal simulations based on ecological niches
-Version: 0.0.21
+Title: Dispersal Simulations Based on Ecological Niches
+Version: 0.0.22
 Authors@R: c(
     person("Fernando", "Machado-Stredel", email = "f.machado.stredel@gmail.com", 
            role = c("aut","cre"), comment = c(ORCID = "0000-0002-8378-3172")),
@@ -10,7 +10,7 @@ Authors@R: c(
     person("A. Townsend", "Peterson", email = "town@ku.edu", role = "aut",
            comment = c(ORCID = "0000-0003-0243-2379")))
 Maintainer: Fernando Machado-Stredel <f.machado.stredel@gmail.com>
-Date: 2021-08-26
+Date: 2023-12-06
 Description: 
     A set of tools to perform simulations based on considerations of 
     Grinnellian ecological niches and other user-defined dispersal paramaters.
@@ -21,34 +21,29 @@ Description:
     included are particularly novel compared to similar packages.
     Theoretical and methodological bases for the approaches and tools 
     implemented can be found in:
+    Machado-Stredel et al. (2021) <doi:10.21425/F5FBG48814>,
     Barve et al. (2011) <doi:10.1016/j.ecolmodel.2011.02.011>,
     Nunez et al. (2021) <doi:10.21425/F5FBG52142>,
     Peterson et al. (1999) <doi:10.1126/science.285.5431.1265>,
     Peterson et al. (2011) <https://www.degruyter.com/princetonup/view/title/506966>,
     Soberon and Peterson (2005) <doi:10.17161/bi.v2i0.4>,
-    Soberon and Peterson (2020) <doi:10.1007/s12080-019-0432-5>,
-    Machado-Stredel et al. (2021) <doi:10.21425/F5FBG48814>.
+    Soberon and Peterson (2020) <doi:10.1007/s12080-019-0432-5>.
 URL: https://github.com/fmachados/grinnell
 BugReports: https://github.com/fmachados/grinnell/issues
 Imports:
     ellipse (>= 0.4),
     graphics,
     grDevices,
-    raster (>= 2.6),
-    rgdal (>= 1.4),
-    rgeos (>= 0.3),
-    sp (>= 1.2),
     stats,
+    terra (>= 1.7),
     utils
 Depends:
     R (>= 3.5)
 Suggests: 
-    knitr,
-    rmarkdown
+    knitr
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 VignetteBuilder: knitr
-

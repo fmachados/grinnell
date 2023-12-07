@@ -6,7 +6,7 @@
 #'
 #' @param data data.frame with occurrence records for the species of interest to
 #' be used to run the simulation; columns must be: species, longitude, latitude.
-#' @param current_variables RasterStack of environmental variables representing
+#' @param current_variables SpatRaster of environmental variables representing
 #' "current" conditions (interglacial). Recommended projection WGS84 (EPSG:4326).
 #' @param starting_proportion (numeric) proportion of \code{data} located in
 #' suitable areas to be used as starting points for the simulation.
@@ -15,7 +15,7 @@
 #' \code{starting_proportion} of points to run dispersal simulation steps.
 #' Options are: "random" and "suitability". Using the option "suitability"
 #' prioritizes records with higher suitability values. Default = "random".
-#' @param barriers RasterLayer representing dispersal barriers for the species.
+#' @param barriers SpatRaster representing dispersal barriers for the species.
 #' This layer must have the same extent and projection than
 #' \code{current_variables}. The only values allowed in this layer are 1 and NA;
 #' 1 = barrier. Default = NULL.
@@ -31,7 +31,7 @@
 #' \code{stable_current}, \code{stable_lgm}, \code{transition_to_lgm},
 #' \code{lgm_to_current}, and \code{scenario_span} need to be defined.
 #' Default = FALSE.
-#' @param projection_variables RasterStack of environmental variables
+#' @param projection_variables SpatRaster of environmental variables
 #' representing the "Last Glacial Maximum" scenario. Variable names, projection,
 #' and extent of these layers must be the same than those in
 #' \code{current_variables}.
@@ -76,6 +76,8 @@
 #' for all scenarios. The default, FALSE, writes only the final results.
 #' @param output_directory (character) name of the output directory to be created
 #' in which all results will be written.
+#' @param overwrite (logical) whether or not to overwrite the
+#' \code{output_directory} if it already exists. Default = FALSE.
 #'
 #' @return
 #' A list containing:
@@ -83,13 +85,13 @@
 #' started.
 #' - all and ordered scenarios considered for the simulation
 #' - a list with the parameters used during the simulation
-#' - accessible areas as a RasterLayer (value 1 = accessed)
-#' - accessible areas as a SpatialPolygons* object (only accessed areas)
-#' - a RasterLayer representing mean values of accessibility frequency among
+#' - accessible areas as a SpatRaster (value 1 = accessed)
+#' - accessible areas as a SpatVector object (only accessed areas)
+#' - a SpatRaster representing mean values of accessibility frequency among
 #' replicates
-#' - a RasterLayer representing variance among values of accessibility frequency
+#' - a SpatRaster representing variance among values of accessibility frequency
 #' of all replicates
-#' - if defined, the RasterLayer used in \code{barriers}, else NULL
+#' - if defined, the SpatRaster used in \code{barriers}, else NULL
 #'
 #' The complete set of results derived from data preparation and the simulation
 #' is written in \code{output_directory}. These results include the ones
@@ -102,9 +104,7 @@
 #' - a simple report from the simulation process
 #'
 #' @export
-#' @importFrom raster writeRaster stack mask crop trim rasterToPolygons image
-#' @importFrom sp proj4string CRS plot
-#' @importFrom rgdal writeOGR
+#' @importFrom terra writeRaster rast trim as.polygons crs vect plot writeVector
 #' @importFrom ellipse ellipse
 #' @importFrom graphics box legend lines par points
 #' @importFrom grDevices dev.off png terrain.colors
@@ -120,7 +120,8 @@
 #'               stable_lgm = 7, transition_to_lgm = 100,
 #'               lgm_to_current = 7, stable_current = 13,
 #'               scenario_span = 1, out_format = "GTiff", set_seed = 1,
-#'               write_all_scenarios = FALSE, output_directory)
+#'               write_all_scenarios = FALSE, output_directory,
+#'               overwrite = FALSE)
 #'
 #' @details
 #' A principal component analysis is performed with \code{current_variables}.
@@ -150,8 +151,8 @@
 #' @examples
 #' # data
 #' data("records", package = "grinnell")
-#' variables <- raster::stack(system.file("extdata/variables.tif",
-#'                                        package = "grinnell"))
+#' variables <- terra::rast(system.file("extdata/variables.tif",
+#'                                      package = "grinnell"))
 #' # example in current scenario
 #' m <- M_simulationR(data = records, current_variables = variables,
 #'                    max_dispersers = 2, replicates = 3, dispersal_events = 5,
@@ -159,9 +160,8 @@
 #'
 #' # example under changing climatic conditions (starting from the past)
 #' \donttest{
-#' variables_lgm <- raster::stack(system.file("extdata/variables_lgm.tif",
-#'                                            package = "grinnell"))
-#' names(variables_lgm) <- names(variables)
+#' variables_lgm <- terra::rast(system.file("extdata/variables_lgm.tif",
+#'                                          package = "grinnell"))
 #'
 #' m_p <- M_simulationR(data = records, current_variables = variables,
 #'                      project = TRUE, projection_variables = variables_lgm,
@@ -173,8 +173,8 @@
 #'                      output_directory = file.path(tempdir(), "eg_Msim1_p"))
 #'
 #' # example under changing conditions, considering dispersal barriers
-#' barrier <- raster::raster(system.file("extdata/barrier.tif",
-#'                                       package = "grinnell"))
+#' barrier <- terra::rast(system.file("extdata/barrier.tif",
+#'                                    package = "grinnell"))
 #'
 #' m_pb <- M_simulationR(data = records, current_variables = variables,
 #'                       barriers = barrier, project = TRUE,
@@ -198,7 +198,8 @@ M_simulationR <- function(data, current_variables, starting_proportion = 0.5,
                           stable_lgm = 7, transition_to_lgm = 100,
                           lgm_to_current = 7, stable_current = 13,
                           scenario_span = 1, out_format = "GTiff", set_seed = 1,
-                          write_all_scenarios = FALSE, output_directory) {
+                          write_all_scenarios = FALSE, output_directory,
+                          overwrite = FALSE) {
 
   # --------
   # testing for initial requirements
@@ -211,11 +212,18 @@ M_simulationR <- function(data, current_variables, starting_proportion = 0.5,
   if (missing(output_directory)) {
     stop("Argument 'output_directory' must be defined")
   }
+  if (overwrite == FALSE & dir.exists(output_directory)) {
+    stop("'output_directory' already exists, to replace it use overwrite = TRUE")
+  }
+  if (overwrite == TRUE & dir.exists(output_directory)) {
+    unlink(x = output_directory, recursive = TRUE, force = TRUE)
+  }
+
   if (!sampling_rule %in% c("random", "suitability")) {
     stop("Argument 'sampling_rule' is not valid")
   }
 
-  n <- raster::nlayers(current_variables)
+  n <- terra::nlyr(current_variables)
   if (n < 2) {
     stop("At least 2 variables are needed in 'current_variables'")
   }
@@ -223,7 +231,7 @@ M_simulationR <- function(data, current_variables, starting_proportion = 0.5,
     if (missing(projection_variables)) {
       stop("If 'project' = TRUE, argument 'projection_variables' must be defined")
     }
-    if (!all(current_variables@extent == projection_variables@extent)) {
+    if (terra::ext(current_variables) != terra::ext(projection_variables)) {
       stop("'projection_variables' and 'current_variables' must have the same extent")
     }
     if (!all(names(current_variables) == names(projection_variables))) {
@@ -231,7 +239,7 @@ M_simulationR <- function(data, current_variables, starting_proportion = 0.5,
     }
   }
   if (!is.null(barriers)) {
-    if (current_variables@extent != barriers@extent) {
+    if (terra::ext(current_variables) != terra::ext(barriers)) {
       stop("'barriers' and 'current_variables' must have the same extent")
     }
   }
@@ -281,7 +289,7 @@ M_simulationR <- function(data, current_variables, starting_proportion = 0.5,
     write_ellmeta(suit_mod, emodfile)
 
     s_name <- paste0(suit_fol, "/suitability", ftype)
-    raster::writeRaster(suit_layer, filename = s_name, format = out_format)
+    terra::writeRaster(suit_layer, filename = s_name)
 
     suit_name <- normalizePath(s_name)
 
@@ -319,10 +327,10 @@ M_simulationR <- function(data, current_variables, starting_proportion = 0.5,
     write_ellmeta(suit_mod, emodfile)
 
     s_name <- paste0(suit_fol, "/suitability_current", ftype)
-    raster::writeRaster(suit_layer, filename = s_name, format = out_format)
+    terra::writeRaster(suit_layer, filename = s_name)
 
     l_name <- paste0(suit_fol, "/suitability_lgm", ftype)
-    raster::writeRaster(suit_lgm, filename = l_name, format = out_format)
+    terra::writeRaster(suit_lgm, filename = l_name)
 
     ## names for later
     sp_name <- normalizePath(s_name)
@@ -344,7 +352,7 @@ M_simulationR <- function(data, current_variables, starting_proportion = 0.5,
   # --------
   # occurrences in suitable areas, starting scenario of simulation
   occ_suit <- suit_mod[[1]][, 1:2]
-  suit_lay <- raster::raster(suit_name[1])
+  suit_lay <- terra::rast(suit_name[1])
   oca <- data.frame(Species = sp_nam, occ_suit)
   oca <- suitable_cells(suit_lay, data = oca)
 
@@ -384,17 +392,15 @@ M_simulationR <- function(data, current_variables, starting_proportion = 0.5,
   ## M
   message("\nPreparing M as a spatial polygon...")
   m <- M_preparation(output_directory, res$A, raster_format = out_format)
-  m_poly <- m[[2]]
-  m <- m[[1]]
 
   ## plot and save figure of M in geographic space
-  save_Mplot(suit_mod, suit_layer, m_poly, size_proportion = 0.55,
+  save_Mplot(suit_mod, suit_layer, m[[2]], size_proportion = 0.55,
              output_directory)
 
   message("\nM simulation finished\nCheck results in:  ", out_dir, "\n")
 
   # return
   return(list(Simulation_occurrences = oca, Simulation_scenarios = suit_name,
-              Summary = res$Summary, A_raster = m, A_polygon = m_poly,
+              Summary = res$Summary, A_raster = m[[1]], A_polygon = m[[2]],
               A_mean = res$A_mean, A_var = res$A_var, Barriers = barriers))
 }

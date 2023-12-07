@@ -4,7 +4,7 @@
 \alias{variables}
 \title{Example of variables to represent current climate condition in a region}
 \format{
-A RasterStack with 108 rows, 84 columns, 9072 cells, and 6 layers:
+A SpatRaster with 108 rows, 84 columns, 9072 cells, and 6 layers:
 \describe{
 \item{Temperature}{temperature, in Celsius degrees times 10.}
 \item{Precipitation}{precipitation, in milimeters.}
@@ -18,8 +18,8 @@ A dataset containing raster layers of climatic variables for a region where
 simulations can be performed in examples.
 }
 \examples{
-variables <- raster::stack(system.file("extdata/variables.tif",
+variables <- terra::rast(system.file("extdata/variables.tif",
                                        package = "grinnell"))
 
-raster::plot(variables[[1]])
+terra::plot(variables[[1]])
 }
