@@ -4,7 +4,7 @@
 \alias{barrier}
 \title{Example of layer representing dispersal barriers for a species}
 \format{
-A RasterLayer with 108 rows, 84 columns, 9072 cells:
+A SpatRaster with 108 rows, 84 columns, 9072 cells:
 \describe{
 \item{barrier}{barriers are represented with values of 1}
 }
@@ -14,8 +14,8 @@ A raster layer representing dispersal barriers for a species in a region
 where simulations can be performed in examples.
 }
 \examples{
-barrier <- raster::raster(system.file("extdata/barrier.tif",
+barrier <- terra::rast(system.file("extdata/barrier.tif",
                                       package = "grinnell"))
 
-raster::plot(barrier)
+terra::plot(barrier)
 }
