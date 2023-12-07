@@ -17,7 +17,7 @@
 #' ordered from first to last scenario. These layers must have the same
 #' extent, resolution, number of cells, and projection than \code{suit_layer}.
 #' Layer names should include parent directory if needed.
-#' @param barriers (optional) RasterLayer representing dispersal barriers for
+#' @param barriers (optional) SpatRaster representing dispersal barriers for
 #' the species. This layer must have the same extent and projection than
 #' \code{suit_layers}. The only values allowed in this layer are 1 and NA;
 #' 1 = barrier. Default = NULL.
@@ -49,7 +49,7 @@
 #' @param set_seed (numeric) a seed to be used when sampling \code{data}
 #' according to \code{starting_proportion}. Default = 1.
 #' @param out_format (character) format of raster layers to be written in
-#' \code{output_directory}. Options are "ascii", "GTiff", and "EHdr" = bil.
+#' \code{output_directory}. Options are "ascii" and "GTiff".
 #' Default = "GTiff".
 #' @param output_directory (character) name of the output directory where
 #' results should be written. If this directory does not exist, it will be
@@ -57,7 +57,7 @@
 #'
 #' @export
 #' @importFrom grDevices rgb col2rgb
-#' @importFrom raster plot xyFromCell
+#' @importFrom terra plot xyFromCell
 #'
 #' @usage
 #' forward_simulation(suit_layer, data = NULL, suit_forward = NULL,
@@ -75,11 +75,11 @@
 #' started.
 #' - all scenarios considered for the simulation
 #' - a list with the parameters used during the simulation
-#' - a RasterLayer with values representing the number of the
+#' - a SpatRaster with values representing the number of the
 #' dispersal event when areas where accessed
-#' - a RasterLayer with values representing the number of the
+#' - a SpatRaster with values representing the number of the
 #' dispersal event when areas where colonized
-#' - if defined, the RasterLayer used in \code{barriers}, else NULL
+#' - if defined, the SpatRaster used in \code{barriers}, else NULL
 #'
 #' The complete set of results derived from data preparation and the simulation
 #' is written in \code{output_directory}. These results include the ones
@@ -129,8 +129,8 @@
 #'                            output_directory = file.path(tempdir(), "eg_fsim1"))
 #'
 #' # simulation current and future using dispersal barriers
-#' barrier <- raster::raster(system.file("extdata/barrier.tif",
-#'                                       package = "grinnell"))
+#' barrier <- terra::rast(system.file("extdata/barrier.tif",
+#'                                    package = "grinnell"))
 #'
 #' f_s2 <- forward_simulation(suit_layer = suitability, data = records,
 #'                            suit_forward = suitf, barriers = barrier,
@@ -161,8 +161,8 @@ forward_simulation <- function(suit_layer, data = NULL, suit_forward = NULL,
     stop("Argument 'sampling_rule' is not valid")
   }
   if (!is.null(barriers)) {
-    suit_lay <- raster::raster(suit_layer)
-    if (suit_lay@extent != barriers@extent) {
+    suit_lay <- terra::rast(suit_layer)
+    if (terra::ext(suit_lay) != terra::ext(barriers)) {
       stop("'barriers' and 'suit_layer' must have the same extent")
     }
   }
@@ -206,7 +206,7 @@ forward_simulation <- function(suit_layer, data = NULL, suit_forward = NULL,
       suit_lay <- suit_lay * barr
 
       s_name <- paste0(suit_fol, "/suitability", ftype)
-      raster::writeRaster(suit_lay, filename = s_name, format = out_format)
+      terra::writeRaster(suit_lay, filename = s_name)
 
       suit_name <- normalizePath(s_name)
 
@@ -215,12 +215,12 @@ forward_simulation <- function(suit_layer, data = NULL, suit_forward = NULL,
       len <- length(suits)
       suit_name <- vapply(1:len, FUN.VALUE = character(1), function(x) {
         if (x > 1) {
-          suit_lay <- raster::raster(suits[x])
+          suit_lay <- terra::rast(suits[x])
         }
         suit_lay <- suit_lay * barr
 
         s_name <- paste0(suit_fol, "/suitability", x, ftype)
-        raster::writeRaster(suit_lay, filename = s_name, format = out_format)
+        terra::writeRaster(suit_lay, filename = s_name)
 
         normalizePath(s_name)
       })
@@ -234,7 +234,7 @@ forward_simulation <- function(suit_layer, data = NULL, suit_forward = NULL,
   }
 
   ## occurrences relevant for simulation, defining initial points if data = NULL
-  suit_lay <- raster::raster(suit_name[1])
+  suit_lay <- terra::rast(suit_name[1])
   data <- suitable_cells(suit_lay, data = data)
 
   ## write relevant records

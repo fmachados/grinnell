@@ -30,7 +30,7 @@ ordered from first to last scenario. These layers must have the same
 extent, resolution, number of cells, and projection than \code{suit_layer}.
 Layer names should include parent directory if needed.}
 
-\item{barriers}{(optional) RasterLayer representing dispersal barriers for
+\item{barriers}{(optional) SpatRaster representing dispersal barriers for
 the species. This layer must have the same extent and projection than
 \code{suit_layers}. The only values allowed in this layer are 1 and NA;
 1 = barrier. Default = NULL.}
@@ -73,7 +73,7 @@ accessed or colonized cells with lower values. Default = 5.}
 according to \code{starting_proportion}. Default = 1.}
 
 \item{out_format}{(character) format of raster layers to be written in
-\code{output_directory}. Options are "ascii", "GTiff", and "EHdr" = bil.
+\code{output_directory}. Options are "ascii" and "GTiff".
 Default = "GTiff".}
 
 \item{output_directory}{(character) name of the output directory where
@@ -87,11 +87,11 @@ A list containing:
 started.
 \item all scenarios considered for the simulation
 \item a list with the parameters used during the simulation
-\item a RasterLayer with values representing the number of the
+\item a SpatRaster with values representing the number of the
 dispersal event when areas where accessed
-\item a RasterLayer with values representing the number of the
+\item a SpatRaster with values representing the number of the
 dispersal event when areas where colonized
-\item if defined, the RasterLayer used in \code{barriers}, else NULL
+\item if defined, the SpatRaster used in \code{barriers}, else NULL
 }
 
 The complete set of results derived from data preparation and the simulation
@@ -149,8 +149,8 @@ f_s1 <- forward_simulation(suit_layer = suitability, data = records,
                            output_directory = file.path(tempdir(), "eg_fsim1"))
 
 # simulation current and future using dispersal barriers
-barrier <- raster::raster(system.file("extdata/barrier.tif",
-                                      package = "grinnell"))
+barrier <- terra::rast(system.file("extdata/barrier.tif",
+                                   package = "grinnell"))
 
 f_s2 <- forward_simulation(suit_layer = suitability, data = records,
                            suit_forward = suitf, barriers = barrier,
