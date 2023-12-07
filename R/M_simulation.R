@@ -90,9 +90,7 @@
 #'              stable_current = 13, scenario_span = 1, output_directory)
 #'
 #' @export
-#' @importFrom raster writeRaster stack mask crop trim rasterToPolygons image
-#' @importFrom sp proj4string CRS plot SpatialPointsDataFrame
-#' @importFrom rgdal writeOGR
+#' @importFrom terra writeRaster rast trim as.polygons crs vect plot writeVector
 #' @importFrom ellipse ellipse
 #'
 #' @details
@@ -139,28 +137,26 @@
 #'
 #' ## data
 #' data("records", package = "grinnell")
-#' variables <- raster::stack(system.file("extdata/variables.tif",
-#'                                        package = "grinnell"))
-#' variables_lgm <- raster::stack(system.file("extdata/variables_lgm.tif",
-#'                                            package = "grinnell"))
+#' variables <- terra::rast(system.file("extdata/variables.tif",
+#'                                      package = "grinnell"))
+#' variables_lgm <- terra::rast(system.file("extdata/variables_lgm.tif",
+#'                                          package = "grinnell"))
 #' names(variables_lgm) <- names(variables)
-#' barrier <- raster::raster(system.file("extdata/barrier.tif",
-#'                                       package = "grinnell"))
+#' barrier <- terra::rast(system.file("extdata/barrier.tif",
+#'                                    package = "grinnell"))
 #'
 #' ## writing data in temporal directories
 #' occ <- paste0(tempdir, "/records1.csv")
 #' write.csv(records, occ, row.names = FALSE)
 #'
 #' barr <- paste0(tempdir, "/barrier1.asc")
-#' raster::writeRaster(barrier, filename = barr, format = "ascii")
+#' terra::writeRaster(barrier, filename = barr)
 #'
-#' vnam <- paste0(cvariables, "/var.asc")
-#' raster::writeRaster(variables, filename = vnam, format = "ascii",
-#'                     bylayer = TRUE, suffix = 1:6)
+#' vnam <- paste0(cvariables, "/var_", 1:6, ".asc")
+#' terra::writeRaster(variables, filename = vnam)
 #'
-#' vnam <- paste0(lgmvariables, "/var.asc")
-#' raster::writeRaster(variables_lgm, filename = vnam, format = "ascii",
-#'                     bylayer = TRUE, suffix = 1:6)
+#' vnam <- paste0(lgmvariables, "/var_" 1:6, ".asc")
+#' terra::writeRaster(variables_lgm, filename = vnam)
 #'
 #' odir1 <- paste0(tempdir, "/eg_msim1")
 #' odir2 <- paste0(tempdir, "/eg_msim2")
@@ -237,7 +233,7 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
   }
   var <- list.files(current_variables, pattern = ".asc$", full.names = TRUE)
   n <- length(var)
-  varss <- raster::stack(var)
+  varss <- terra::rast(var)
 
   if (n < 2) {
     stop("At least 2 variables are needed in 'current_variables'")
@@ -247,8 +243,8 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
       stop("If 'project' = TRUE, argument 'projection_variables' must be defined")
     }
     pvar <- list.files(projection_variables, pattern = ".asc$", full.names = TRUE)
-    lgmss <- raster::stack(pvar)
-    if (!all(varss@extent == lgmss@extent)) {
+    lgmss <- terra::rast(pvar)
+    if (!all(terra:ext(varss) == terra::ext(lgmss))) {
       stop("'projection_variables' and 'current_variables' must have the same extent")
     }
     if (!all(names(varss) == names(lgmss))) {
@@ -291,7 +287,7 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
     ## barrier consideration
     if (!is.null(barriers)) {
       message("  Correcting suitability layer using barriers")
-      barriers <- raster::raster(barriers)
+      barriers <- terra::rast(barriers)
       barr <- is.na(barriers)
       suit_layer <- suit_layer * barr
     }
@@ -301,7 +297,7 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
     write_ellmeta(suit_mod, emodfile)
 
     s_name <- paste0(suit_fol, "/suitability.asc")
-    raster::writeRaster(suit_layer, s_name, format = "ascii")
+    terra::writeRaster(suit_layer, s_name)
 
     suit_name <- paste0("\"", normalizePath(s_name), "\"")
     suit_name <- gsub("\\\\", "/", suit_name)
@@ -325,7 +321,7 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
     ## barrier consideration
     if (!is.null(barriers)) {
       message("  Suitability layers will be corrected using barriers")
-      barriers <- raster::raster(barriers)
+      barriers <- terra::rast(barriers)
       barr <- is.na(barriers)
       suit_layer <- suit_layer * barr
       suit_lgm <- suit_lgm * barr
@@ -338,10 +334,10 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
     write_ellmeta(suit_mod, emodfile)
 
     s_name <- paste0(suit_fol, "/suitability_current.asc")
-    raster::writeRaster(suit_layer, s_name, format = "ascii")
+    terra::writeRaster(suit_layer, s_name)
 
     l_name <- paste0(suit_fol, "/suitability_lgm.asc")
-    raster::writeRaster(suit_lgm, l_name, format = "ascii")
+    terra::writeRaster(suit_lgm, l_name)
 
     ### names for python
     sp_name <- paste0("\"", normalizePath(s_name), "\"")
@@ -365,8 +361,8 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
 
   # --------
   # occurrences in suitable areas
-  occ_suit <- suit_mod[[1]][, 1:2]
-  suit_bar <- raster::extract(raster::raster(gsub("\"", "", suit_name[1])),
+  occ_suit <- as.matrix(suit_mod[[1]][, 1:2])
+  suit_bar <- terra::extract(terra::rast(gsub("\"", "", suit_name[1])),
                               occ_suit)
   occ_suit <- occ_suit[suit_bar > 0, ]
 

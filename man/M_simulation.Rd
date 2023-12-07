@@ -160,28 +160,26 @@ dir.create(lgmvariables)
 
 ## data
 data("records", package = "grinnell")
-variables <- raster::stack(system.file("extdata/variables.tif",
-                                       package = "grinnell"))
-variables_lgm <- raster::stack(system.file("extdata/variables_lgm.tif",
-                                           package = "grinnell"))
+variables <- terra::rast(system.file("extdata/variables.tif",
+                                     package = "grinnell"))
+variables_lgm <- terra::rast(system.file("extdata/variables_lgm.tif",
+                                         package = "grinnell"))
 names(variables_lgm) <- names(variables)
-barrier <- raster::raster(system.file("extdata/barrier.tif",
-                                      package = "grinnell"))
+barrier <- terra::rast(system.file("extdata/barrier.tif",
+                                   package = "grinnell"))
 
 ## writing data in temporal directories
 occ <- paste0(tempdir, "/records1.csv")
 write.csv(records, occ, row.names = FALSE)
 
 barr <- paste0(tempdir, "/barrier1.asc")
-raster::writeRaster(barrier, filename = barr, format = "ascii")
+terra::writeRaster(barrier, filename = barr)
 
-vnam <- paste0(cvariables, "/var.asc")
-raster::writeRaster(variables, filename = vnam, format = "ascii",
-                    bylayer = TRUE, suffix = 1:6)
+vnam <- paste0(cvariables, "/var_", 1:6, ".asc")
+terra::writeRaster(variables, filename = vnam)
 
-vnam <- paste0(lgmvariables, "/var.asc")
-raster::writeRaster(variables_lgm, filename = vnam, format = "ascii",
-                    bylayer = TRUE, suffix = 1:6)
+vnam <- paste0(lgmvariables, "/var_" 1:6, ".asc")
+terra::writeRaster(variables_lgm, filename = vnam)
 
 odir1 <- paste0(tempdir, "/eg_msim1")
 odir2 <- paste0(tempdir, "/eg_msim2")
