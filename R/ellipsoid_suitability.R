@@ -6,17 +6,17 @@
 #'
 #' @param data a numerical matrix containing geographic coordinates of species
 #' occurrences to be used; columns must be: longitude and latitude.
-#' @param variables a RasterStack of variables representing the environmental
+#' @param variables a SpatRaster of variables representing the environmental
 #' conditions in the area of interest.
 #' @param suitability_threshold (numeric) value (percentage) to be used as
 #' threshold; default = 5.
 #' @param project (logical) whether or not to project the model to other
 #' scenario(s). If TRUE, argument \code{projection_variables} must be defined.
 #' Default = FALSE.
-#' @param projection_variables a RasterStack (if only one scenario) or named
-#' list of RasterStacks (if more than one scenario) with variables representing
-#' the environmental conditions of scenarios to transfer the model to.
-#' Variable names must match between initial and projection scenarios.
+#' @param projection_variables a SpatRaster (if only one scenario) or named
+#' list of SpatRaster objects (if more than one scenario) with variables
+#' representing the environmental conditions of scenarios to transfer the model
+#' to. Variable names must match between initial and projection scenarios.
 #' @param tolerance the tolerance for detecting linear dependencies.
 #' Default = 1e-60.
 #'
@@ -26,8 +26,8 @@
 #' - niche centroid
 #' - covariance matrix
 #' - proportion of suitable areas in environmental and geographic space
-#' - suitability RasterLayer if \code{projection_variables} is a RasterStack or
-#' list of suitability RasterLayer(s) if \code{projection_variables} is a list
+#' - suitability SpatRaster if \code{projection_variables} is a SpatRaster or
+#' list of suitability SpatRaster(s) if \code{projection_variables} is a list
 #'
 #' @details Distance used for creating the model is Mahalanobis distance. All
 #' values outside the ellipsoid produced using the centroid and covariance
@@ -37,7 +37,7 @@
 #' Values in maps (from 0 to 1) can be interpreted as suitability.
 #'
 #' @export
-#' @importFrom raster extract
+#' @importFrom terra extract
 #' @importFrom stats cov mahalanobis na.omit qchisq
 #'
 #' @usage
@@ -49,7 +49,7 @@ ellipsoid_suitability <- function(data, variables, suitability_threshold = 5,
                                   project = FALSE, projection_variables,
                                   tolerance = 1e-60) {
   # conditions
-  raster_formats <- c("RasterStack", "RasterBrick")
+  raster_formats <- c("SpatRaster")
   if (missing(data)) {
     stop("Argument 'data' must be defined")
   } else {
@@ -61,7 +61,7 @@ ellipsoid_suitability <- function(data, variables, suitability_threshold = 5,
     stop("Argument 'variables' must be defined")
   } else {
     if (!class(variables)[1] %in% raster_formats) {
-      stop("Argument 'variables' must be of class RasterStack")
+      stop("Argument 'variables' must be of class SpatRaster")
     }
   }
   if (project == TRUE) {
@@ -70,17 +70,25 @@ ellipsoid_suitability <- function(data, variables, suitability_threshold = 5,
     }
 
     if (!class(projection_variables)[1] %in% c(raster_formats, "list")) {
-      stop("Argument 'projection_variables' must be of class RasterStack or list")
+      stop("Argument 'projection_variables' must be of class SpatRaster or list")
     }
   }
 
   # raster and data processing
-  occ_data <- na.omit(raster::extract(variables, data))
-  centroid <- colMeans(occ_data)
+  ## xy as matrix
+  data <- as.matrix(data)
 
+  ## values for data
+  occ_data <- terra::extract(variables, data)
+  nona <- !is.na(occ_data[, 1])
+  occ_data <- occ_data[nona, ]
+
+  ## ellipsoid features
+  centroid <- colMeans(occ_data)
   covariance <- cov(occ_data)
 
   if (project == FALSE) {
+    # suitability prediction
     suit_model <- predict_esuitability(centroid = centroid,
                                        covariance_matrix = covariance,
                                        variables = variables,
@@ -88,29 +96,30 @@ ellipsoid_suitability <- function(data, variables, suitability_threshold = 5,
                                        tolerance = tolerance)
 
     # occurrences for results
-    suit <- na.omit(raster::extract(suit_model[[4]], data))
-    occ_comp <- cbind(data, occ_data, suit)
-    colnames(occ_comp) <- c("Longitude", "Latitude", names(variables), "Suitability")
+    suit <- terra::extract(suit_model[[4]], data)
+    occ_comp <- cbind(data[nona, ], occ_data, suit[nona, ])
+    colnames(occ_comp) <- c("Longitude", "Latitude", names(variables),
+                            "Suitability")
 
     results <- c(list(occurrences = occ_comp), suit_model)
 
-  }else {
+  } else {
     # raster and data processing for projections
     not_suitable <- list()
     suit_layer <- list()
 
-    if (class(projection_variables)[1] == "RasterStack") {
+    if (class(projection_variables)[1] == "SpatRaster") {
       projection_variables <- list(variables, projection_variables)
       proj_names <- "projection"
 
-    }else {
+    } else {
       if (is.null(names(projection_variables))) {
         proj_names <- paste0("projection_", 1:length(projection_variables))
       } else {
         proj_names <- paste0("projection_", names(projection_variables))
       }
 
-      projection_variables <- c(variables, projection_variables)
+      projection_variables <- c(list(variables), projection_variables)
     }
 
     suit_names <- c("suitability_layer", proj_names)
@@ -132,14 +141,16 @@ ellipsoid_suitability <- function(data, variables, suitability_threshold = 5,
     scenarios <- rep(c("Initial", paste("Transfer area",
                                         1:(length(projection_variables) - 1))),
                      each = 2)
-    not_suitable <- data.frame(Scenario = scenarios, do.call(rbind, not_suitable))
+    not_suitable <- data.frame(Scenario = scenarios,
+                               do.call(rbind, not_suitable))
 
     names(suit_layer) <- suit_names
 
     # occurrences for results
-    suit <- na.omit(raster::extract(suit_layer[[1]], data))
-    occ_comp <- cbind(data, occ_data, suit)
-    colnames(occ_comp) <- c("Longitude", "Latitude", names(variables), "Suitability")
+    suit <- na.omit(terra::extract(suit_layer[[1]], data))
+    occ_comp <- cbind(data[nona, ], occ_data, suit[nona, ])
+    colnames(occ_comp) <- c("Longitude", "Latitude", names(variables),
+                            "Suitability")
 
     # returning results
     results <- list(occurrences = occ_comp, centroid = suit_model[[1]],
@@ -154,7 +165,7 @@ ellipsoid_suitability <- function(data, variables, suitability_threshold = 5,
 
 #' Predict suitability based on Mahalanobis distance to niche centroid
 #'
-#' @description predict_esuitability predicts a RasterLayer of environmental
+#' @description predict_esuitability predicts a SpatRaster of environmental
 #' suitability based on Mahalanobis distances to a niche centroid and a
 #' covariance matrix.
 #'
@@ -168,7 +179,7 @@ ellipsoid_suitability <- function(data, variables, suitability_threshold = 5,
 #' @param covariance_matrix covariance matrix to be used when measuring the
 #' Mahalanobis distances. Ignored if \code{ellipsoid_model} is defined.
 #' Default = NULL.
-#' @param variables a RasterStack of variables representing the environmental
+#' @param variables a SpatRaster of variables representing the environmental
 #' conditions in the area where the model will be transferred to.
 #' @param suitability_threshold (numeric) value (percentage) to be used as
 #' threshold; default = 5.
@@ -187,21 +198,20 @@ ellipsoid_suitability <- function(data, variables, suitability_threshold = 5,
 #' - niche centroid
 #' - covariance matrix
 #' - proportion of suitable areas in environmental and geographic space
-#' - suitability RasterLayer
+#' - suitability SpatRaster
 
 predict_esuitability <- function(ellipsoid_model = NULL, centroid = NULL,
                                  covariance_matrix = NULL, variables,
                                  suitability_threshold = 5, tolerance = 1e-60) {
 
   # preparing data from ellipsoid_model if given
-  raster_formats <- c("RasterStack", "RasterBrick")
-  if (!missing(ellipsoid_model)) {
-    occ <- ellipsoid_model[[1]]
+  raster_formats <- c("SpatRaster")
+  if (!is.null(ellipsoid_model)) {
     centroid <- ellipsoid_model[[2]]
     covariance_matrix <- ellipsoid_model[[3]]
-  }else {
-    if (missing(centroid) | missing(covariance_matrix)) {
-      stop("Argument 'ellipsoid_model' missing, 'centroid' and 'covariance_matrix' must be defined")
+  } else {
+    if (is.null(centroid) | is.null(covariance_matrix)) {
+      stop("Argument 'ellipsoid_model' = NULL, 'centroid' and 'covariance_matrix' must be defined")
     }
   }
 
@@ -209,7 +219,7 @@ predict_esuitability <- function(ellipsoid_model = NULL, centroid = NULL,
     stop("Argument 'variables' must be defined")
   } else {
     if (!class(variables)[1] %in% raster_formats) {
-      stop("Argument 'variables' must be of class RasterStack")
+      stop("Argument 'variables' must be of class SpatRaster")
     }
   }
 
@@ -239,6 +249,7 @@ predict_esuitability <- function(ellipsoid_model = NULL, centroid = NULL,
 
   # raster generation
   suit_layer <- variables[[1]]
+  names(suit_layer) <- "Suitability"
   suit_layer[!is.na(suit_layer[])] <- suitability
 
   results <- list(centroid = centroid, covariance_matrix = covariance_matrix,

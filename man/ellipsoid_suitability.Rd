@@ -12,7 +12,7 @@ ellipsoid_suitability(data, variables, suitability_threshold = 5,
 \item{data}{a numerical matrix containing geographic coordinates of species
 occurrences to be used; columns must be: longitude and latitude.}
 
-\item{variables}{a RasterStack of variables representing the environmental
+\item{variables}{a SpatRaster of variables representing the environmental
 conditions in the area of interest.}
 
 \item{suitability_threshold}{(numeric) value (percentage) to be used as
@@ -22,10 +22,10 @@ threshold; default = 5.}
 scenario(s). If TRUE, argument \code{projection_variables} must be defined.
 Default = FALSE.}
 
-\item{projection_variables}{a RasterStack (if only one scenario) or named
-list of RasterStacks (if more than one scenario) with variables representing
-the environmental conditions of scenarios to transfer the model to.
-Variable names must match between initial and projection scenarios.}
+\item{projection_variables}{a SpatRaster (if only one scenario) or named
+list of SpatRaster objects (if more than one scenario) with variables
+representing the environmental conditions of scenarios to transfer the model
+to. Variable names must match between initial and projection scenarios.}
 
 \item{tolerance}{the tolerance for detecting linear dependencies.
 Default = 1e-60.}
@@ -37,8 +37,8 @@ A list containing:
 \item niche centroid
 \item covariance matrix
 \item proportion of suitable areas in environmental and geographic space
-\item suitability RasterLayer if \code{projection_variables} is a RasterStack or
-list of suitability RasterLayer(s) if \code{projection_variables} is a list
+\item suitability SpatRaster if \code{projection_variables} is a SpatRaster or
+list of suitability SpatRaster(s) if \code{projection_variables} is a list
 }
 }
 \description{
