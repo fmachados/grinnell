@@ -231,7 +231,7 @@ M_simulationR <- function(data, current_variables, starting_proportion = 0.5,
     if (missing(projection_variables)) {
       stop("If 'project' = TRUE, argument 'projection_variables' must be defined")
     }
-    if (!all(terra::ext(current_variables) == terra::ext(projection_variables))) {
+    if (terra::ext(current_variables) != terra::ext(projection_variables)) {
       stop("'projection_variables' and 'current_variables' must have the same extent")
     }
     if (!all(names(current_variables) == names(projection_variables))) {

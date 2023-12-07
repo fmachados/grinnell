@@ -262,7 +262,7 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
     }
     pvar <- list.files(projection_variables, pattern = ".asc$", full.names = TRUE)
     lgmss <- terra::rast(pvar)
-    if (!all(terra:ext(varss) == terra::ext(lgmss))) {
+    if (terra:ext(varss) != terra::ext(lgmss)) {
       stop("'projection_variables' and 'current_variables' must have the same extent")
     }
     if (!all(names(varss) == names(lgmss))) {
@@ -380,8 +380,8 @@ M_simulation <- function(data, current_variables, barriers = NULL, project = FAL
   # --------
   # occurrences in suitable areas
   occ_suit <- as.matrix(suit_mod[[1]][, 1:2])
-  suit_bar <- terra::extract(terra::rast(gsub("\"", "", suit_name[1])),
-                              occ_suit)
+  suit_bar <- terra::rast(gsub("\"", "", suit_name[1]))
+  suit_bar <- terra::extract(suit_bar, occ_suit)
   occ_suit <- occ_suit[suit_bar > 0, ]
 
   ## records
