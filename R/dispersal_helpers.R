@@ -86,6 +86,12 @@ suitable_cells <- function(suit_layer, data = NULL) {
     suit_bar <- terra::extract(suit_layer, data[, 2:3])[, 2]
     tokeep <- suit_bar > 0 & !is.na(suit_bar)
 
+    if (sum(tokeep) == 0) {
+      stop("None of the records lay in suitable areas to start the simulation.",
+           "\n  Try decreasing 'suitability_threshold' or, if projections are done,",
+           "\n  try distinct combinations of the periods for the simulation.")
+    }
+
     return(data.frame(species = sp, longitude = data[tokeep, 2],
                       latitude = data[tokeep, 3],
                       suitability = suit_bar[tokeep]))
